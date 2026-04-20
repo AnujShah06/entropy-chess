@@ -1,0 +1,156 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "ec77d8d24b1c4b4006a38fb51d857cac",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "a0dca5d10411e717a19a6155107fdcd5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "43a75fe7cbe5821f570ec604609795d5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "8eb2d04b2e9f0a06729c38c65373a311",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "e08a834be8bc054e866912068309b6e4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "3496db56b8eb6a5d5abda6da5beb2231",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "02d658a9b03d86bcc42353b7c8842949",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Alternative \"no-downsample\" config --- keeps the latent at full 8x8 resolution,\npreserving per-square semantics at the cost of a larger latent grid:</span>\n<div class=\"language-python codehilite\"><pre><span></span><code><span class=\"n\">model</span> <span class=\"o\">=</span> <span class=\"n\">VQModel</span><span class=\"p\">(</span>\n    <span class=\"n\">sample_size</span><span class=\"o\">=</span><span class=\"mi\">8</span><span class=\"p\">,</span>\n    <span class=\"n\">in_channels</span><span class=\"o\">=</span><span class=\"mi\">20</span><span class=\"p\">,</span> <span class=\"n\">out_channels</span><span class=\"o\">=</span><span class=\"mi\">20</span><span class=\"p\">,</span>\n    <span class=\"n\">down_block_types</span><span class=\"o\">=</span><span class=\"p\">(</span><span class=\"s2\">&quot;DownEncoderBlock2D&quot;</span><span class=\"p\">,),</span>\n    <span class=\"n\">up_block_types</span><span class=\"o\">=</span><span class=\"p\">(</span><span class=\"s2\">&quot;UpDecoderBlock2D&quot;</span><span class=\"p\">,),</span>\n    <span class=\"n\">block_out_channels</span><span class=\"o\">=</span><span class=\"p\">(</span><span class=\"mi\">128</span><span class=\"p\">,),</span>\n    <span class=\"n\">layers_per_block</span><span class=\"o\">=</span><span class=\"mi\">2</span><span class=\"p\">,</span>\n    <span class=\"n\">mid_block_add_attention</span><span class=\"o\">=</span><span class=\"kc\">True</span><span class=\"p\">,</span>\n    <span class=\"n\">latent_channels</span><span class=\"o\">=</span><span class=\"mi\">4</span><span class=\"p\">,</span>\n    <span class=\"n\">num_vq_embeddings</span><span class=\"o\">=</span><span class=\"mi\">1024</span><span class=\"p\">,</span>\n    <span class=\"n\">norm_type</span><span class=\"o\">=</span><span class=\"s2\">&quot;group&quot;</span><span class=\"p\">,</span> <span class=\"n\">norm_num_groups</span><span class=\"o\">=</span><span class=\"mi\">8</span><span class=\"p\">,</span>\n    <span class=\"n\">force_upcast</span><span class=\"o\">=</span><span class=\"kc\">False</span><span class=\"p\">,</span> <span class=\"n\">lookup_from_codebook</span><span class=\"o\">=</span><span class=\"kc\">True</span><span class=\"p\">,</span>\n<span class=\"p\">)</span><span class=\"o\">.</span><span class=\"n\">to</span><span class=\"p\">(</span><span class=\"n\">device</span><span class=\"p\">)</span>\n</code></pre></div></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "75d45c6eae5671314a5ce3f581a61921",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "c22ab1def50809f564c301c4025cbec6",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "922d04798e375613116eb74c224fe6d9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "b85354c665a7bceab707379b17567f68",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "2c2fe1dbfd31a393984404049b9295aa",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "21637555e14be8efdfa44a2dc66a8aac",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"inferencing\">Inferencing</h1>\n<span class=\"paragraph\">The cells below are <strong>guarded</strong>: they only do anything after a checkpoint\nexists at <code>config.output_dir</code>. On a fresh notebook they print a skip\nmessage rather than crashing. Once training completes, they start\nproducing output.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "dcb0657938de0c1a3ea0a66756957af3",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "00a0671affa3a88040d1ba58ffbcff06",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"split-inferencing-encode-decode-helpers\">Split Inferencing (encode / decode helpers)</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "46bc1994d4b3845e453d7ba596206c51",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "9c441033e838f3ef0052128265e47672",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "bd2e69321c77559775d4d1a12ee214d1",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "c94782bf6e9bf7fe07bf15b144a1edd3",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "6ba80341d13a2515ffa80a0584d47528",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "c387325383b579ddfd7fb8bc284d74ee",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "05bb6b93c66911a02d8c344d46647ff8",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "d42366d48765db77c29c8767e87b7f41",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "74c14cc6652dc47d3ce9a6e6a3106373",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "afb36125e638a85d4e5f1d06990ca1b3",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "4261a4ba1a31384bcd50bee577195d09",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "753cda113afa7d9d9fa84b64a716def0",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "d5e66fd7091013496185b03ed894b207",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">model = VQModel(\n    sample_size=config.image_size,\n    in_channels=1,\n    out_channels=1,</span>\n<div class=\"language-carbon highlight\"><pre><span></span><code><span class=\"nx\">down_block_types</span><span class=\"p\">=(</span><span class=\"s\">&quot;DownEncoderBlock2D&quot;</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"s\">&quot;DownEncoderBlock2D&quot;</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"s\">&quot;DownEncoderBlock2D&quot;</span><span class=\"p\">),</span>\n<span class=\"nx\">up_block_types</span><span class=\"p\">=(</span><span class=\"s\">&quot;UpDecoderBlock2D&quot;</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"s\">&quot;UpDecoderBlock2D&quot;</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"s\">&quot;UpDecoderBlock2D&quot;</span><span class=\"p\">),</span>\n\n<span class=\"nx\">block_out_channels</span><span class=\"p\">=(</span><span class=\"mi\">64</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">128</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">256</span><span class=\"p\">),</span>\n<span class=\"nx\">layers_per_block</span><span class=\"p\">=</span><span class=\"mi\">2</span><span class=\"p\">,</span>\n<span class=\"nx\">mid_block_add_attention</span><span class=\"p\">=</span><span class=\"nx\">False</span><span class=\"p\">,</span>\n\n<span class=\"nx\">latent_channels</span><span class=\"p\">=</span><span class=\"mi\">1</span><span class=\"p\">,</span><span class=\"w\">    </span><span class=\"err\">#</span><span class=\"nx\">SD</span><span class=\"w\"> </span><span class=\"nx\">uses</span><span class=\"w\"> </span><span class=\"mi\">3</span><span class=\"w\"> </span><span class=\"p\">???</span>\n<span class=\"nx\">num_vq_embeddings</span><span class=\"p\">=</span><span class=\"mi\">1024</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"err\">#</span><span class=\"nx\">SD</span><span class=\"w\"> </span><span class=\"nx\">uses</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"nx\">K</span>\n<span class=\"nx\">scaling_factor</span><span class=\"p\">=</span><span class=\"m m-Double\">0.1825</span><span class=\"p\">,</span>\n<span class=\"nx\">act_fn</span><span class=\"p\">=</span><span class=\"s\">&quot;silu&quot;</span><span class=\"p\">,</span>\n\n<span class=\"nx\">norm_type</span><span class=\"p\">=</span><span class=\"s\">&quot;group&quot;</span><span class=\"p\">,</span>\n<span class=\"nx\">norm_num_groups</span><span class=\"p\">=</span><span class=\"mi\">32</span><span class=\"p\">,</span>\n\n<span class=\"nx\">force_upcast</span><span class=\"p\">=</span><span class=\"nx\">False</span><span class=\"p\">,</span><span class=\"w\">     </span><span class=\"err\">#</span><span class=\"w\"> </span><span class=\"nx\">Keep</span><span class=\"w\"> </span><span class=\"nx\">FP16</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"nx\">A6000</span><span class=\"w\"> </span><span class=\"nx\">efficiency</span>\n<span class=\"nx\">lookup_from_codebook</span><span class=\"p\">=</span><span class=\"nx\">True</span><span class=\"w\">  </span><span class=\"err\">#</span><span class=\"w\"> </span><span class=\"nx\">Enable</span><span class=\"w\"> </span><span class=\"nx\">codebook</span><span class=\"w\"> </span><span class=\"nx\">lookup</span><span class=\"w\"> </span><span class=\"nx\">during</span><span class=\"w\"> </span><span class=\"nx\">forward</span><span class=\"w\"> </span><span class=\"nx\">pass</span>\n</code></pre></div>\n<span class=\"paragraph\">).to(\"cuda\")</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "f6ab8d6017358139a168b5349f2e6f8b",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "30cfd233ea387078a9be19af8a7a2cb4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "9178d2e0c1e5a844a51eca4a5913bfc4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "d5e989ccbac0895499941016ddd3beb8",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "3c12d1ecb9008043a8616fe383017a0d",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "88dcf6abb18a87d24c140655c685f8b7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"inferencing\">Inferencing</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "c1d42f00e93a411d518bed7266597f9f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "ee3f241b8b5688c8cf3e76f8890b1973",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "09d0ffcd17a8e54de3f5a70e82f80eda",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"spilt-inferencing\">Spilt Inferencing</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "9e2c35560ae8d75edad1c63eeffe8b8f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "6071ce9aea50129b68e221888b0544e2",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "8e2f47348c410481d45a38b09a2b67fa",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "62c20233d4e6086ad620a91867f55bfd",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "d694e9a173d4df5b333741241ab7eed5",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

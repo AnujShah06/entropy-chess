@@ -16,32 +16,32 @@ def _(mo):
     mo.md("""
     # core/energy.py — Energy Model Architecture
 
-    This notebook defines the hand-written **Energy-Based Model (EBM)** used in this
-    project. There is no diffusers primitive for joint-embedding energy models — this
-    is one of the two novel hand-written components (the other is the inference loop).
+    This notebook defines the hand-written **Energy-Based Model (EBM)** for chess
+    board comparison. There is no VQ-VAE, no pretrained weights, and no frozen layers —
+    everything trains from scratch in Stage 1.
 
-    ## Overview
-
-    The energy model takes a `(problem_board, candidate_trace_board)` pair and outputs
-    a **single scalar energy**. Lower energy = better continuation.
+    ## System Overview
 
     ```
-    problem  (B,18,8,8) ──► online encoder  ──► flatten ──► ep  (B,128)  ─┐
-                                                                             ├─► 4-way fuse (B,512) ──► MLP 512→256→128→1 ──► energy (B,1)
-    trace    (B,18,8,8) ──► JEPA target enc  ──► flatten ──► et  (B,128)  ─┘
+    problem  (B, 18, 8, 8) ──► ChessEncoder (online)       ──► ep  (B, 16, 8, 8) ─┐
+                                                                                      ├──► FusionHead ──► energy (B,)
+    trace    (B, 18, 8, 8) ──► ChessEncoder (JEPA target)  ──► et  (B, 16, 8, 8) ─┘
     ```
 
-    ## JEPA Design
+    ## Two EMAs — coexist cleanly
 
-    Two encoder instances share the same architecture (VQModel encoder + quant_conv),
-    initialized from the same Stage 0 VQ-VAE checkpoint:
+    | EMA | Decay | Role |
+    |---|---|---|
+    | **JEPA target encoder** | τ=0.999 | Structural — provides trace embeddings during training. Prevents representational collapse. Never updated by backprop. |
+    | **Inference EMA** | τ=0.9999 | Quality — slow snapshot of all trainable params. Used only at eval/deploy time. Managed externally by training notebooks. |
 
-    - **Online encoder** — first `DownEncoderBlock2D` frozen, second block trainable.
-      Updated by gradient descent.
-    - **JEPA target encoder** — parameters are an EMA of the online encoder at
-      `τ_jepa = 0.999`. **Never** updated by backprop. Prevents representational collapse.
+    ## Trainable in Stage 1
+    - Full `online_encoder` (all parameters — no freezing without pretrained init)
+    - Full `fusion_head` (all parameters)
+    - **Total: ~3.4M trainable parameters**
 
-    Both the clean trace and the corrupted trace are passed through the JEPA target encoder.
+    ## Not updated by gradient descent
+    - `target_encoder` — drifts via JEPA EMA only
     """)
     return
 
@@ -53,117 +53,219 @@ def _():
     import torch.nn as nn
     import torch.nn.functional as F
 
-    return copy, nn, torch
+    return F, copy, nn, torch
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    ## `EncoderWrapper`
+    ## `ResnetBlock`
 
-    Wraps a VQModel encoder + quant_conv into a single `nn.Module` that:
-    1. Runs the encoder to produce a `(B, 8, 4, 4)` feature map.
-    2. Runs `quant_conv` on that map.
-    3. Flattens to a `(B, 128)` vector.
+    Standard pre-norm residual conv block shared by both `ChessEncoder` and
+    `FusionHead`. Uses GroupNorm + SiLU + two 3×3 convolutions with a skip
+    connection. No downsampling — spatial resolution is preserved.
 
-    The 4×4×8 = 128-dimensional flat vector is the board embedding fed to the fusion head.
+    ```
+    x ──► GroupNorm ──► SiLU ──► Conv3x3 ──► GroupNorm ──► SiLU ──► Conv3x3 ──► + ──► out
+    └──────────────────────────────────────────────────────────────────────────────┘
+    ```
     """)
     return
 
 
 @app.cell
 def _(nn):
-    class EncoderWrapper(nn.Module):
+    class ResnetBlock(nn.Module):
         """
-        Wraps a VQModel encoder + quant_conv into a flat-embedding module.
+        Pre-norm residual 3×3 conv block. Preserves (B, C, H, W) shape.
 
-        Forward:
-            board  (B, 18, 8, 8)  →  embedding  (B, 128)
-
-        The 4×4×8 = 128-dim embedding comes from:
-            encoder(board)   → (B, 8, 4, 4)   [two 2× downsamples]
-            quant_conv(feat) → (B, 8, 4, 4)
-            flatten          → (B, 128)
+        Args:
+            channels:  Number of input and output channels.
+            groups:    Number of groups for GroupNorm (default 8).
         """
 
-        def __init__(self, encoder: nn.Module, quant_conv: nn.Module):
+        def __init__(self, channels: int, groups: int = 8):
             super().__init__()
-            self.encoder = encoder
-            self.quant_conv = quant_conv
+            self.norm1 = nn.GroupNorm(groups, channels)
+            self.conv1 = nn.Conv2d(channels, channels, 3, padding=1)
+            self.norm2 = nn.GroupNorm(groups, channels)
+            self.conv2 = nn.Conv2d(channels, channels, 3, padding=1)
+            self.act   = nn.SiLU()
 
-        def forward(self, board: "torch.Tensor") -> "torch.Tensor":
-            # board: (B, 18, 8, 8)
-            feat = self.encoder(board)          # (B, 8, 4, 4)
-            feat = self.quant_conv(feat)         # (B, 8, 4, 4)
-            return feat.flatten(start_dim=1)     # (B, 128)
+        def forward(self, x: "torch.Tensor") -> "torch.Tensor":
+            h = self.conv1(self.act(self.norm1(x)))
+            h = self.conv2(self.act(self.norm2(h)))
+            return x + h
 
-    return (EncoderWrapper,)
+    return (ResnetBlock,)
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    ## `FusionMLP`
+    ## `ChessEncoder`
 
-    The 3-layer MLP that maps the 512-dim fused vector to a scalar energy.
+    Maps an `(B, 18, 8, 8)` board tensor to a `(B, 16, 8, 8)` per-square
+    feature map. **No spatial downsampling** — every square retains its own
+    feature vector throughout.
 
-    ### 4-way fusion
+    | Layer | Shape out | Notes |
+    |---|---|---|
+    | `in_proj` Conv3×3(18→160) | (B, 160, 8, 8) | Expand channels |
+    | 4× `ResnetBlock(160)` | (B, 160, 8, 8) | Full-board receptive field after 4 blocks |
+    | `norm_out` GroupNorm + SiLU | (B, 160, 8, 8) | |
+    | `out_proj` Conv1×1(160→16) | (B, 16, 8, 8) | Compress to per-square embedding |
 
-    Given online embedding `ep` and target embedding `et`, both `(B, 128)`:
-
-    ```
-    fused = cat([ep, et, ep - et, ep * et])   →  (B, 512)
-    ```
-
-    The difference `ep − et` and element-wise product `ep ⊙ et` give the head
-    explicit *compare* signals, so it doesn't need to learn subtraction/multiplication
-    from scratch inside the MLP.
-
-    ### MLP
-
-    ```
-    512 → LayerNorm → Linear(512, 256) → GELU
-        → LayerNorm → Linear(256, 128) → GELU
-        → LayerNorm → Linear(128,   1)
-    ```
-
-    The output is an **unbounded scalar** — no sigmoid/tanh — so the margin ranking
-    loss can push energies apart freely.
+    ### Sizing rationale
+    - **Width 160, 4 blocks**: 8 conv layers of 3×3 kernels gives an effective receptive
+      field that covers the full 8×8 board. Enough capacity for piece-relationship
+      features without overfitting on 180k pairs.
+    - **Output 16 channels**: more than 12 piece classes, leaving capacity for
+      relational features. This is the input width the `FusionHead` expects.
+    - **~1.85M parameters**: healthy data-to-parameter ratio with 180k training pairs.
     """)
     return
 
 
 @app.cell
-def _(nn, torch):
-    class FusionMLP(nn.Module):
+def _(ResnetBlock, nn):
+    class ChessEncoder(nn.Module):
         """
-        4-way fusion head: (ep, et) → scalar energy.
+        Custom board encoder. Maps (B, 18, 8, 8) → (B, out_channels, 8, 8).
+        No spatial downsampling — 8×8 resolution is preserved end-to-end.
 
-        ep, et: (B, 128)  board embeddings from online / target encoder
-        output: (B, 1)    scalar energy (lower = better continuation)
+        Args:
+            in_channels:  Input board channels (default 18).
+            hidden:       ResNet block width (default 160).
+            out_channels: Per-square output feature dim (default 16).
+            num_blocks:   Number of ResNet blocks (default 4).
         """
 
-        def __init__(self, embed_dim: int = 128):
+        def __init__(
+            self,
+            in_channels: int = 18,
+            hidden: int = 160,
+            out_channels: int = 16,
+            num_blocks: int = 4,
+        ):
             super().__init__()
-            fused_dim = embed_dim * 4   # cat([ep, et, ep-et, ep*et]) = 512
+            self.in_proj = nn.Conv2d(in_channels, hidden, 3, padding=1)
+            self.blocks  = nn.ModuleList(
+                [ResnetBlock(hidden) for _ in range(num_blocks)]
+            )
+            self.norm_out = nn.GroupNorm(8, hidden)
+            self.act_out  = nn.SiLU()
+            self.out_proj = nn.Conv2d(hidden, out_channels, 1)  # 1×1 projection
 
+        def forward(self, x: "torch.Tensor") -> "torch.Tensor":
+            # x: (B, 18, 8, 8)
+            h = self.in_proj(x)            # (B, hidden, 8, 8)
+            for block in self.blocks:
+                h = block(h)               # (B, hidden, 8, 8)  — no spatial change
+            h = self.act_out(self.norm_out(h))
+            return self.out_proj(h)        # (B, out_channels, 8, 8)
+
+    return (ChessEncoder,)
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## `FusionHead`
+
+    Compares two `(B, 16, 8, 8)` board embeddings and outputs a scalar energy.
+    This is the heaviest reasoning component — it must learn implicit chess
+    understanding from 180k examples.
+
+    ### 4-way spatial fusion
+
+    ```
+    ep, et  →  cat([ep, et, ep−et, ep⊙et], dim=1)  →  (B, 64, 8, 8)
+    ```
+
+    The difference `ep−et` makes **"what changed?"** an explicit input feature.
+    The product `ep⊙et` makes **"what stayed the same?"** explicit. The conv stack
+    doesn't have to discover these comparisons inside its weights.
+
+    ### Architecture
+
+    | Layer | Shape out | Notes |
+    |---|---|---|
+    | `in_proj` Conv3×3(64→192) | (B, 192, 8, 8) | Project fused input |
+    | 2× `ResnetBlock(192)` | (B, 192, 8, 8) | Spatial reasoning at full 8×8 |
+    | `norm_out` + SiLU | (B, 192, 8, 8) | |
+    | Global avg pool | (B, 192) | Board-level summary |
+    | MLP 192→192→96→1 | (B, 1) | LayerNorm+GELU, unbounded scalar |
+
+    ### Sizing rationale
+    - **2 ResNet blocks at width 192**: with `in_proj` + 2 blocks × 2 convs each,
+      the spatial receptive field covers the full board. Enough capacity for tactical
+      move-quality signals.
+    - **Global avg pool then MLP**: reduces (B, 192, 8, 8) to (B, 192) before scalar
+      reduction. The MLP does final reasoning with LayerNorm+GELU.
+    - **Unbounded output**: no sigmoid/tanh, so the margin ranking loss can push
+      energies as far apart as the signal demands.
+    - **~1.5M parameters**: together with encoder 1.85M → **3.4M total**.
+    """)
+    return
+
+
+@app.cell
+def _(ResnetBlock, nn, torch):
+    class FusionHead(nn.Module):
+        """
+        Spatial 4-way fusion head: (ep, et) → scalar energy.
+
+        ep, et: (B, in_channels, 8, 8)  per-square board embeddings
+        output: (B,)                     scalar energy; lower = better continuation
+        """
+
+        def __init__(
+            self,
+            in_channels: int = 16,
+            hidden: int = 192,
+            num_blocks: int = 2,
+        ):
+            super().__init__()
+            fused_in = in_channels * 4   # cat([ep, et, ep-et, ep*et]) = 64 channels
+
+            self.in_proj = nn.Conv2d(fused_in, hidden, 3, padding=1)
+            self.conv_blocks = nn.ModuleList(
+                [ResnetBlock(hidden) for _ in range(num_blocks)]
+            )
+            self.norm_out = nn.GroupNorm(8, hidden)
+            self.act_out  = nn.SiLU()
+
+            # After global avg pool: (B, hidden) → scalar
             self.mlp = nn.Sequential(
-                nn.LayerNorm(fused_dim),
-                nn.Linear(fused_dim, 256),
+                nn.Linear(hidden, hidden),
+                nn.LayerNorm(hidden),
                 nn.GELU(),
-                nn.LayerNorm(256),
-                nn.Linear(256, 128),
+                nn.Linear(hidden, hidden // 2),
+                nn.LayerNorm(hidden // 2),
                 nn.GELU(),
-                nn.LayerNorm(128),
-                nn.Linear(128, 1),
+                nn.Linear(hidden // 2, 1),
             )
 
-        def forward(self, ep: "torch.Tensor", et: "torch.Tensor") -> "torch.Tensor":
-            # ep, et: (B, 128)
-            fused = torch.cat([ep, et, ep - et, ep * et], dim=1)  # (B, 512)
-            return self.mlp(fused)                                  # (B, 1)
+        def forward(
+            self,
+            ep: "torch.Tensor",   # (B, 16, 8, 8)
+            et: "torch.Tensor",   # (B, 16, 8, 8)
+        ) -> "torch.Tensor":
+            # 4-way spatial fusion
+            diff  = ep - et
+            prod  = ep * et
+            fused = torch.cat([ep, et, diff, prod], dim=1)  # (B, 64, 8, 8)
 
-    return (FusionMLP,)
+            h = self.in_proj(fused)              # (B, hidden, 8, 8)
+            for block in self.conv_blocks:
+                h = block(h)                     # (B, hidden, 8, 8)
+            h = self.act_out(self.norm_out(h))   # (B, hidden, 8, 8)
+
+            h = h.mean(dim=(2, 3))               # (B, hidden)  — global avg pool
+            return self.mlp(h).squeeze(-1)        # (B,)         — unbounded scalar
+
+    return (FusionHead,)
 
 
 @app.cell
@@ -171,80 +273,100 @@ def _(mo):
     mo.md("""
     ## `EnergyModel`
 
-    The top-level module that wires together:
+    Top-level module wiring together:
+    - `online_encoder`  — `ChessEncoder`, all parameters trainable
+    - `target_encoder`  — `ChessEncoder`, JEPA EMA copy, no backprop ever
+    - `fusion_head`     — `FusionHead`, fully trainable
 
-    - `online_encoder`  — `EncoderWrapper` (last block trainable, first frozen)
-    - `target_encoder`  — `EncoderWrapper` (JEPA EMA copy, no grad)
-    - `fusion_mlp`      — `FusionMLP` (fully trainable)
+    ### Two forward methods
 
-    ### Trainable parameters (gradient descent)
-    - `online_encoder.encoder.down_blocks[1]` (last DownEncoderBlock2D)
-    - `online_encoder.encoder.mid_block`
-    - `online_encoder.quant_conv`
-    - All of `fusion_mlp`
+    | Method | When to use |
+    |---|---|
+    | `forward(problem, trace)` | **Training** — `torch.no_grad()` on target encoder, detaches `et` |
+    | `forward_with_grad_on_trace(problem, trace)` | **Inference refinement** — gradient flows through target encoder to compute ∂E/∂x̂₀ |
 
-    ### Non-trainable (frozen or EMA-only)
-    - `online_encoder.encoder.conv_in`
-    - `online_encoder.encoder.down_blocks[0]`
-    - All of `target_encoder` (drifts via EMA, never via backprop)
-
-    ### EMA update rule (call after every optimizer step)
-
+    ### JEPA EMA update rule
     ```
-    θ_target ← τ · θ_target + (1 − τ) · θ_online    (τ = 0.999)
+    θ_target ← τ · θ_target + (1 − τ) · θ_online    τ = 0.999
     ```
+    Call `model.update_target_encoder()` after every `optimizer.step()`.
     """)
     return
 
 
 @app.cell
-def _(EncoderWrapper, FusionMLP, copy, nn, torch):
+def _(ChessEncoder, F, FusionHead, copy, nn, torch):
     class EnergyModel(nn.Module):
         """
         JEPA-style joint-embedding energy model for chess boards.
 
-        Args:
-            online_encoder:  EncoderWrapper initialised from VQ-VAE weights,
-                             with first block frozen.
-            tau_jepa:        EMA decay for the JEPA target encoder (default 0.999).
+        Built entirely from scratch — no VQ-VAE, no pretrained weights.
+        The JEPA target encoder is the structural collapse prevention mechanism.
 
-        Usage:
-            model = EnergyModel.from_encoder_wrapper(online_enc)
-            energy = model(problem, candidate_trace)   # (B, 1)
-            model.update_target_encoder()              # call after optimizer.step()
+        Args:
+            encoder_kwargs:  Dict of kwargs forwarded to both ChessEncoder instances.
+                             Defaults match spec: hidden=160, out_channels=16, num_blocks=4.
+            fusion_kwargs:   Dict of kwargs forwarded to FusionHead.
+                             Defaults match spec: in_channels=16, hidden=192, num_blocks=2.
+            tau_jepa:        EMA decay for the JEPA target encoder (default 0.999).
         """
 
         def __init__(
             self,
-            online_encoder: EncoderWrapper,
+            encoder_kwargs: dict = None,
+            fusion_kwargs: dict = None,
             tau_jepa: float = 0.999,
         ):
             super().__init__()
             self.tau_jepa = tau_jepa
 
-            # Online encoder — first block frozen (handled in EncoderWrapper/vqvae.py)
-            self.online_encoder = online_encoder
+            enc_kw  = encoder_kwargs or {}
+            fuse_kw = fusion_kwargs  or {}
 
-            # JEPA target encoder — deep copy, no grad on any parameter
-            self.target_encoder: EncoderWrapper = copy.deepcopy(online_encoder)
+            # Online encoder — fully trainable from scratch, no freezing
+            self.online_encoder = ChessEncoder(**enc_kw)
+
+            # JEPA target encoder — deep copy of online, no gradient ever
+            self.target_encoder: ChessEncoder = copy.deepcopy(self.online_encoder)
             for param in self.target_encoder.parameters():
                 param.requires_grad = False
 
-            # Fusion MLP — fully trainable
-            self.fusion_mlp = FusionMLP(embed_dim=128)
+            # Fusion head — fully trainable
+            self.fusion_head = FusionHead(**fuse_kw)
 
         # ── Factory ──────────────────────────────────────────────────────────────
 
         @classmethod
-        def from_encoder_wrapper(
+        def from_scratch(
             cls,
-            online_encoder: EncoderWrapper,
             tau_jepa: float = 0.999,
+            encoder_hidden: int = 160,
+            encoder_out_channels: int = 16,
+            encoder_num_blocks: int = 4,
+            fusion_hidden: int = 192,
+            fusion_num_blocks: int = 2,
         ) -> "EnergyModel":
-            """Convenience constructor: build EnergyModel from an EncoderWrapper."""
-            return cls(online_encoder=online_encoder, tau_jepa=tau_jepa)
+            """
+            Build a fresh EnergyModel with spec-default hyperparameters.
+            Used by Stage 1 training notebook.
 
-        # ── Forward ──────────────────────────────────────────────────────────────
+            Returns an EnergyModel with ~3.4M trainable parameters.
+            """
+            return cls(
+                encoder_kwargs={
+                    "hidden": encoder_hidden,
+                    "out_channels": encoder_out_channels,
+                    "num_blocks": encoder_num_blocks,
+                },
+                fusion_kwargs={
+                    "in_channels": encoder_out_channels,
+                    "hidden": fusion_hidden,
+                    "num_blocks": fusion_num_blocks,
+                },
+                tau_jepa=tau_jepa,
+            )
+
+        # ── Forward (training) ────────────────────────────────────────────────────
 
         def forward(
             self,
@@ -253,26 +375,28 @@ def _(EncoderWrapper, FusionMLP, copy, nn, torch):
         ) -> "torch.Tensor":
             """
             Compute scalar energy for a (problem, candidate_trace) pair.
+            Use this during **training**.
+
+            The target encoder runs under torch.no_grad() so its activations are
+            excluded from the computation graph. Gradients flow only through the
+            online encoder and fusion head.
 
             Args:
-                problem:         (B, 18, 8, 8) — problem board tensor
-                candidate_trace: (B, 18, 8, 8) — clean or corrupted trace board
+                problem:          (B, 18, 8, 8) — problem board tensor
+                candidate_trace:  (B, 18, 8, 8) — clean or corrupted trace board
 
             Returns:
-                energy: (B, 1) — scalar; lower = candidate is a better continuation
+                energy: (B,) — scalar; lower = candidate is a better continuation
             """
-            # Online encoder processes the problem board (gradient flows through last block)
-            ep = self.online_encoder(problem)           # (B, 128)
+            ep = self.online_encoder(problem)                # (B, 16, 8, 8)
 
-            # JEPA target encoder processes the candidate trace (no gradient)
             with torch.no_grad():
-                et = self.target_encoder(candidate_trace)  # (B, 128)
+                et = self.target_encoder(candidate_trace)    # (B, 16, 8, 8)
+            et = et.detach()
 
-            # Re-enable grad on et so gradient can flow through x0 at inference
-            # (the target encoder params stay frozen; only et's values are used)
-            et = et.detach().requires_grad_(False)
+            return self.fusion_head(ep, et)                  # (B,)
 
-            return self.fusion_mlp(ep, et)              # (B, 1)
+        # ── Forward (inference gradient) ──────────────────────────────────────────
 
         def forward_with_grad_on_trace(
             self,
@@ -280,56 +404,80 @@ def _(EncoderWrapper, FusionMLP, copy, nn, torch):
             candidate_trace: "torch.Tensor",
         ) -> "torch.Tensor":
             """
-            Variant used during **inference energy refinement**.
+            Compute scalar energy with **gradient flowing through candidate_trace**.
+            Use this during **inference energy refinement** to compute ∂E/∂x̂₀.
 
-            Runs the target encoder WITHOUT torch.no_grad() so that gradients
-            w.r.t. `candidate_trace` (x̂₀) can flow back through the full graph.
-            The target encoder parameters themselves are still frozen (requires_grad=False),
-            so no weights are updated — only ∂E/∂x̂₀ is computed.
+            The target encoder parameters have requires_grad=False so no weights
+            are updated — only the gradient w.r.t. candidate_trace (x̂₀) is used
+            to refine the diffusion model's predicted clean board.
 
             Args:
-                problem:         (B, 18, 18, 8) — problem board (fixed during inference)
-                candidate_trace: (B, 18,  8, 8) — x̂₀ from diffusion model
+                problem:          (B, 18, 8, 8) — fixed problem board
+                candidate_trace:  (B, 18, 8, 8) — x̂₀ from diffusion model, grad enabled
 
             Returns:
-                energy: (B, 1) scalar
+                energy: (B,) scalar — call .sum().backward() to get ∂E/∂x̂₀
             """
-            ep = self.online_encoder(problem)           # (B, 128)
-            et = self.target_encoder(candidate_trace)   # (B, 128)  grad flows through here
-            return self.fusion_mlp(ep, et)              # (B, 1)
+            ep = self.online_encoder(problem)             # (B, 16, 8, 8)
+            et = self.target_encoder(candidate_trace)     # (B, 16, 8, 8) — grad through input
+            return self.fusion_head(ep, et)               # (B,)
 
-        # ── JEPA EMA update ──────────────────────────────────────────────────────
+        # ── JEPA EMA update ───────────────────────────────────────────────────────
 
         @torch.no_grad()
         def update_target_encoder(self) -> None:
             """
             EMA update: θ_target ← τ · θ_target + (1 − τ) · θ_online
 
-            Call this **after every optimizer.step()** in the training loop.
-            τ = self.tau_jepa (default 0.999).
+            Call this **after every optimizer.step()** during Stage 1+ training.
+
+            Slow-start mitigation: if loss barely moves in the first 500 steps,
+            temporarily reduce tau_jepa to 0.99 and ramp back to 0.999 once
+            training is stably descending. See spec for details.
             """
-            for param_online, param_target in zip(
+            for p_online, p_target in zip(
                 self.online_encoder.parameters(),
                 self.target_encoder.parameters(),
             ):
-                param_target.data.mul_(self.tau_jepa).add_(
-                    param_online.data, alpha=1.0 - self.tau_jepa
+                p_target.data.mul_(self.tau_jepa).add_(
+                    p_online.data, alpha=1.0 - self.tau_jepa
                 )
 
-        # ── Utility ──────────────────────────────────────────────────────────────
+        # ── Utilities ─────────────────────────────────────────────────────────────
 
-        def trainable_parameters(self):
+        def trainable_parameters(self) -> list:
             """
-            Returns only the parameters that should be passed to the optimizer:
-            - online_encoder (last block + mid_block + quant_conv only — first block frozen)
-            - fusion_mlp (all parameters)
-
-            The target encoder is intentionally excluded.
+            Returns parameters for the optimizer (online encoder + fusion head).
+            Target encoder is intentionally excluded — it is EMA-only.
             """
             return (
-                list(p for p in self.online_encoder.parameters() if p.requires_grad)
-                + list(self.fusion_mlp.parameters())
+                list(self.online_encoder.parameters())
+                + list(self.fusion_head.parameters())
             )
+
+        def encoder_cosine_similarity(
+            self,
+            boards: "torch.Tensor",
+        ) -> float:
+            """
+            Diagnostic: mean cosine similarity between online and target encoder
+            outputs on a fixed batch. Used to detect collapse during Stage 1.
+
+            - Stays at 1.0 → encoders haven't differentiated → reduce tau_jepa
+            - Drops to ~0.0 or oscillates → diverging too fast → increase tau_jepa
+            - Healthy range: 0.7–0.95 after a few hundred steps
+
+            Args:
+                boards: (B, 18, 8, 8) fixed diagnostic batch
+
+            Returns:
+                mean cosine similarity in [−1, 1]
+            """
+            with torch.no_grad():
+                ep = self.online_encoder(boards).flatten(1)   # (B, 16*8*8)
+                et = self.target_encoder(boards).flatten(1)   # (B, 16*8*8)
+                cos_sim = F.cosine_similarity(ep, et, dim=1)  # (B,)
+            return cos_sim.mean().item()
 
     return (EnergyModel,)
 
@@ -339,17 +487,15 @@ def _(mo):
     mo.md("""
     ## `margin_ranking_loss`
 
-    Stage 1 training loss: pairwise margin ranking loss.
+    Stage 1 (and Stages 3–4) training loss — pairwise margin ranking:
 
     ```
     L = mean( max(0,  m + E(problem, clean_trace) − E(problem, corrupted_trace)) )
     ```
 
-    Lower energy for clean traces, higher energy for corrupted ones.
-    The margin `m` starts at 1.0 (spec default).
-
     Also returns the **margin satisfaction rate** — fraction of pairs where
-    `E_clean + m < E_corrupted` — used as the Stage 1 validation metric.
+    `E_clean + m < E_corrupted`. This is the primary Stage 1 validation metric.
+    Should rise past 50% quickly and ideally reach 80% on easy-mix validation.
     """)
     return
 
@@ -357,104 +503,33 @@ def _(mo):
 @app.cell
 def _(torch):
     def margin_ranking_loss(
-        e_clean: "torch.Tensor",      # (B, 1) energy for (problem, clean_trace)
-        e_corrupted: "torch.Tensor",  # (B, 1) energy for (problem, corrupted_trace)
+        e_clean: "torch.Tensor",      # (B,) energy for (problem, clean_trace)
+        e_corrupted: "torch.Tensor",  # (B,) energy for (problem, corrupted_trace)
         margin: float = 1.0,
     ) -> "tuple[torch.Tensor, float]":
         """
-        Pairwise margin ranking loss for the energy model.
+        Pairwise margin ranking loss for energy model training.
 
         L = mean( max(0,  m + E_clean − E_corrupted) )
 
         Args:
-            e_clean:     (B, 1) scalar energies for (problem, clean_trace) pairs.
-            e_corrupted: (B, 1) scalar energies for (problem, corrupted_trace) pairs.
-            margin:      Margin m (default 1.0 per spec).
+            e_clean:     (B,) scalar energies for (problem, clean_trace).
+            e_corrupted: (B,) scalar energies for (problem, corrupted_trace).
+            margin:      Margin m, default 1.0 per spec.
 
         Returns:
-            loss:                   Scalar loss tensor (differentiable).
-            margin_satisfaction:    Float in [0, 1] — fraction of pairs satisfying
-                                    E_clean + m < E_corrupted. Used for validation logging.
+            loss:                  Scalar loss tensor (differentiable).
+            margin_satisfaction:   Float in [0,1] — fraction of pairs satisfying
+                                   E_clean + m < E_corrupted. Primary validation metric.
         """
-        # Both are (B, 1) — squeeze to (B,) for clean arithmetic
-        e_c = e_clean.squeeze(1)       # (B,)
-        e_r = e_corrupted.squeeze(1)   # (B,)
-
-        loss = torch.clamp(margin + e_c - e_r, min=0.0).mean()
+        loss = torch.clamp(margin + e_clean - e_corrupted, min=0.0).mean()
 
         with torch.no_grad():
-            satisfied = (e_c + margin < e_r).float().mean().item()
+            satisfied = (e_clean + margin < e_corrupted).float().mean().item()
 
         return loss, satisfied
 
     return (margin_ranking_loss,)
-
-
-@app.cell
-def _(mo):
-    mo.md("""
-    ## `build_energy_model`
-
-    Factory function that constructs a fully wired `EnergyModel` from a Stage 0
-    VQ-VAE checkpoint path. This is the entry point used by the training notebooks.
-
-    ```python
-    from core.energy import build_energy_model
-    model = build_energy_model("checkpoints/vqvae.pt", device="cuda")
-    ```
-    """)
-    return
-
-
-@app.cell
-def _(EncoderWrapper, EnergyModel, torch):
-    def build_energy_model(
-        vqvae_checkpoint_path: str,
-        tau_jepa: float = 0.999,
-        device: str = "cpu",
-    ) -> EnergyModel:
-        """
-        Build a fully wired EnergyModel from a Stage 0 VQ-VAE checkpoint.
-
-        Steps:
-        1. Load the full VQModel from `vqvae_checkpoint_path`.
-        2. Extract encoder + quant_conv, freeze first DownEncoderBlock2D + conv_in.
-        3. Wrap in EncoderWrapper.
-        4. Construct EnergyModel (which deep-copies the wrapper for the target encoder).
-        5. Move to `device`.
-
-        Args:
-            vqvae_checkpoint_path: Path to checkpoints/vqvae.pt (Stage 0 output).
-            tau_jepa:              JEPA EMA decay (default 0.999).
-            device:                Torch device string.
-
-        Returns:
-            EnergyModel ready for Stage 1 training.
-        """
-        # Import here to avoid circular dependency at module level
-        from core.vqvae import build_vqvae  # type: ignore[import]
-
-        vqvae = build_vqvae()
-        ckpt = torch.load(vqvae_checkpoint_path, map_location=device)
-        vqvae.load_state_dict(ckpt["model_state_dict"])
-        vqvae.to(device)
-        vqvae.eval()
-
-        # Freeze first block + conv_in; last block stays trainable
-        encoder = vqvae.encoder
-        quant_conv = vqvae.quant_conv
-
-        for param in encoder.conv_in.parameters():
-            param.requires_grad = False
-        for param in encoder.down_blocks[0].parameters():
-            param.requires_grad = False
-
-        online_enc = EncoderWrapper(encoder, quant_conv)
-        model = EnergyModel(online_encoder=online_enc, tau_jepa=tau_jepa)
-        model.to(device)
-        return model
-
-    return
 
 
 @app.cell
@@ -466,84 +541,96 @@ def _(mo):
 
 
 @app.cell
-def _(EnergyModel, FusionMLP, margin_ranking_loss, mo, torch):
-    # ── Build a minimal EnergyModel from scratch (no checkpoint needed) ──
-    # Simulate an encoder as a tiny stand-in so the sanity check is self-contained.
-    import torch.nn as _nn
+def _(
+    ChessEncoder,
+    EnergyModel,
+    FusionHead,
+    ResnetBlock,
+    margin_ranking_loss,
+    mo,
+    torch,
+):
+    # ── 1. ResnetBlock: shape preservation ──
+    _blk = ResnetBlock(channels=32)
+    _x   = torch.randn(2, 32, 8, 8)
+    assert _blk(_x).shape == (2, 32, 8, 8), "ResnetBlock must preserve shape"
 
-    class _TinyEncoder(_nn.Module):
-        """Minimal stand-in encoder: (B,18,8,8) → (B,128) via adaptive pool + linear."""
-        def __init__(self):
-            super().__init__()
-            self.proj = _nn.Linear(18 * 8 * 8, 128)
-        def forward(self, x):
-            return self.proj(x.flatten(1))
+    # ── 2. ChessEncoder: board → per-square embedding ──
+    _enc = ChessEncoder()        # defaults: hidden=160, out_channels=16, num_blocks=4
+    _board = torch.randn(4, 18, 8, 8)
+    _emb = _enc(_board)
+    assert _emb.shape == (4, 16, 8, 8), f"ChessEncoder output: expected (4,16,8,8), got {_emb.shape}"
 
-    # Wrap in EncoderWrapper-compatible interface by subclassing
-    class _StubEncoderWrapper(_nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.enc = _TinyEncoder()
-        def forward(self, x):
-            return self.enc(x)
-        def parameters(self, recurse=True):
-            return self.enc.parameters(recurse)
+    # ── 3. FusionHead: two embeddings → scalar ──
+    _fhead = FusionHead()        # defaults: in_channels=16, hidden=192, num_blocks=2
+    _ep = torch.randn(4, 16, 8, 8)
+    _et = torch.randn(4, 16, 8, 8)
+    _e  = _fhead(_ep, _et)
+    assert _e.shape == (4,), f"FusionHead output: expected (4,), got {_e.shape}"
 
-    # Build energy model using FusionMLP directly to keep test self-contained
-    _fusion = FusionMLP(embed_dim=128)
-    _online = _StubEncoderWrapper()
-    _target = _StubEncoderWrapper()
-    for _p in _target.parameters():
-        _p.requires_grad = False
+    # ── 4. EnergyModel: full forward pass ──
+    _model   = EnergyModel.from_scratch()
+    _problem = torch.randn(4, 18, 8, 8)
+    _clean   = torch.randn(4, 18, 8, 8)
+    _corrupt = torch.randn(4, 18, 8, 8)
 
-    # ── Forward pass shape check ──
-    _B = 4
-    _problem = torch.randn(_B, 18, 8, 8)
-    _clean   = torch.randn(_B, 18, 8, 8)
-    _corrupt = torch.randn(_B, 18, 8, 8)
+    _e_clean   = _model(_problem, _clean)
+    _e_corrupt = _model(_problem, _corrupt)
+    assert _e_clean.shape == (4,),   f"EnergyModel clean: expected (4,), got {_e_clean.shape}"
+    assert _e_corrupt.shape == (4,), f"EnergyModel corrupt: expected (4,), got {_e_corrupt.shape}"
 
-    _ep = _online(_problem)                         # (B, 128)
-    _et_clean   = _target(_clean)                   # (B, 128)
-    _et_corrupt = _target(_corrupt)                 # (B, 128)
-
-    _e_clean   = _fusion(_ep, _et_clean)            # (B, 1)
-    _e_corrupt = _fusion(_ep, _et_corrupt)          # (B, 1)
-
-    assert _e_clean.shape   == (_B, 1), f"Expected ({_B},1), got {_e_clean.shape}"
-    assert _e_corrupt.shape == (_B, 1), f"Expected ({_B},1), got {_e_corrupt.shape}"
-
-    # ── Loss check ──
+    # ── 5. Margin ranking loss ──
     _loss, _sat = margin_ranking_loss(_e_clean, _e_corrupt, margin=1.0)
-    assert _loss.shape == torch.Size([]), "Loss should be a scalar"
+    assert _loss.shape == torch.Size([]), "Loss must be a scalar"
 
-    # ── EMA update check (using real EnergyModel with stub encoders) ──
-    # Patch EncoderWrapper to accept the stub
-    _em = EnergyModel.__new__(EnergyModel)
-    _nn.Module.__init__(_em)
-    _em.tau_jepa = 0.999
-    _em.online_encoder = _online
-    import copy as _copy
-    _em.target_encoder = _copy.deepcopy(_online)
-    for _p in _em.target_encoder.parameters():
-        _p.requires_grad = False
-    _em.fusion_mlp = _fusion
+    # ── 6. JEPA EMA update ──
+    _params_before = [p.data.clone() for p in _model.target_encoder.parameters()]
+    _model.update_target_encoder()
+    _params_after  = [p.data.clone() for p in _model.target_encoder.parameters()]
+    _ema_moved = any(not torch.equal(b, a) for b, a in zip(_params_before, _params_after))
 
-    _target_params_before = [p.data.clone() for p in _em.target_encoder.parameters()]
-    _em.update_target_encoder()
-    _target_params_after  = [p.data.clone() for p in _em.target_encoder.parameters()]
-    _ema_moved = any(not torch.equal(b, a) for b, a in zip(_target_params_before, _target_params_after))
+    # ── 7. Cosine similarity diagnostic ──
+    _cos = _model.encoder_cosine_similarity(_problem)
+
+    # ── 8. Gradient flows through trace in inference mode ──
+    _x0 = torch.randn(2, 18, 8, 8, requires_grad=True)
+    _e_inf = _model.forward_with_grad_on_trace(_problem[:2], _x0)
+    _e_inf.sum().backward()
+    _grad_exists = _x0.grad is not None and _x0.grad.abs().sum().item() > 0
+
+    # ── 9. Parameter counts ──
+    _total       = sum(p.numel() for p in _model.parameters())
+    _trainable   = sum(p.numel() for p in _model.trainable_parameters())
+    _enc_params  = sum(p.numel() for p in _model.online_encoder.parameters())
+    _fuse_params = sum(p.numel() for p in _model.fusion_head.parameters())
+    _target_req  = any(p.requires_grad for p in _model.target_encoder.parameters())
 
     mo.md(
         f"""
-        **Sanity checks passed ✓**
+        **All sanity checks passed ✓**
 
         | Check | Result |
         |---|---|
-        | `e_clean` shape | `{tuple(_e_clean.shape)}` |
-        | `e_corrupted` shape | `{tuple(_e_corrupt.shape)}` |
-        | Margin ranking loss | `{_loss.item():.4f}` (scalar ✓) |
+        | `ResnetBlock` shape preserved | ✓ `(2, 32, 8, 8)` |
+        | `ChessEncoder` output shape | ✓ `{tuple(_emb.shape)}` |
+        | `FusionHead` output shape | ✓ `{tuple(_e.shape)}` |
+        | `EnergyModel` forward output shapes | ✓ `{tuple(_e_clean.shape)}` |
+        | Margin ranking loss scalar | ✓ `{_loss.item():.4f}` |
         | Margin satisfaction rate | `{_sat:.2%}` |
-        | EMA target moved after update | `{"✓" if _ema_moved else "✗ — EMA did not move!"}` |
+        | JEPA target EMA moved after update | `{"✓" if _ema_moved else "✗ EMA did not move!"}` |
+        | Cosine similarity (random init) | `{_cos:.4f}` (expect ≈1.0 at init) |
+        | Grad flows through trace at inference | `{"✓" if _grad_exists else "✗ No gradient!"}` |
+        | Target encoder requires_grad=False | `{"✓" if not _target_req else "✗ target has grads!"}` |
+
+        **Parameter counts**
+
+        | Component | Params |
+        |---|---|
+        | `online_encoder` | {_enc_params:,} |
+        | `fusion_head` | {_fuse_params:,} |
+        | **Total trainable** | **{_trainable:,}** |
+        | `target_encoder` (EMA, not trained) | {sum(p.numel() for p in _model.target_encoder.parameters()):,} |
+        | Full model total | {_total:,} |
         """
     )
     return
@@ -552,20 +639,21 @@ def _(EnergyModel, FusionMLP, margin_ranking_loss, mo, torch):
 @app.cell
 def _(mo):
     mo.md("""
-    ## Parameter Summary
+    ## Architecture Summary
 
-    | Component | Grad? | Updated by |
+    | Component | Params | Key design |
     |---|---|---|
-    | `online_encoder.encoder.conv_in` | ✗ | Frozen |
-    | `online_encoder.encoder.down_blocks[0]` | ✗ | Frozen |
-    | `online_encoder.encoder.down_blocks[1]` | ✓ | AdamW |
-    | `online_encoder.encoder.mid_block` | ✓ | AdamW |
-    | `online_encoder.quant_conv` | ✓ | AdamW |
-    | `fusion_mlp` | ✓ | AdamW |
-    | `target_encoder` (all) | ✗ | JEPA EMA (τ=0.999) |
+    | `ChessEncoder` (online) | ~1.85M | 4× ResnetBlock at width 160, no downsample, 18→16ch |
+    | `FusionHead` | ~1.5M | 4-way spatial concat (64ch), 2× ResnetBlock at width 192, global pool, MLP 192→96→1 |
+    | `ChessEncoder` (JEPA target) | ~1.85M | EMA copy of online encoder, τ=0.999, no backprop |
+    | **Energy model total (trainable)** | **~3.4M** | |
 
-    The inference EMA (τ=0.9999) is managed externally by the training notebooks
-    via `diffusers.training_utils.EMAModel` — it is not part of this architecture file.
+    ### Key invariants
+    - `target_encoder.requires_grad` is always `False`
+    - `update_target_encoder()` must be called after every `optimizer.step()`
+    - Training uses `forward()` (no grad through target encoder)
+    - Inference refinement uses `forward_with_grad_on_trace()` (grad through x̂₀)
+    - Output is an **unbounded scalar** — no sigmoid/tanh clamp
     """)
     return
 

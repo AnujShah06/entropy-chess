@@ -8,17 +8,24 @@
     {
       "id": "Hbol",
       "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "MJUe",
-      "code_hash": "c722933eda84f0d130566920752bdc86",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"coreenergypy-energy-model-architecture\">core/energy.py \u2014 Energy Model Architecture</h1>\n<span class=\"paragraph\">This notebook defines the hand-written <strong>Energy-Based Model (EBM)</strong> used in this\nproject. There is no diffusers primitive for joint-embedding energy models \u2014 this\nis one of the two novel hand-written components (the other is the inference loop).</span>\n<h2 id=\"overview\">Overview</h2>\n<span class=\"paragraph\">The energy model takes a <code>(problem_board, candidate_trace_board)</code> pair and outputs\na <strong>single scalar energy</strong>. Lower energy = better continuation.</span>\n<div class=\"language-haxe codehilite\"><pre><span></span><code><span class=\"n\">problem</span><span class=\"w\">  </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"mi\">18</span><span class=\"p\">,</span><span class=\"mi\">8</span><span class=\"p\">,</span><span class=\"mi\">8</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">online</span><span class=\"w\"> </span><span class=\"n\">encoder</span><span class=\"w\">  </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">flatten</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">ep</span><span class=\"w\">  </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"mi\">128</span><span class=\"p\">)</span><span class=\"w\">  </span><span class=\"err\">\u2500\u2510</span>\n<span class=\"w\">                                                                         </span><span class=\"err\">\u251c\u2500\u25ba</span><span class=\"w\"> </span><span class=\"mi\">4</span><span class=\"o\">-</span><span class=\"n\">way</span><span class=\"w\"> </span><span class=\"n\">fuse</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"mi\">512</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">MLP</span><span class=\"w\"> </span><span class=\"mi\">512</span><span class=\"err\">\u2192</span><span class=\"mi\">256</span><span class=\"err\">\u2192</span><span class=\"mi\">128</span><span class=\"err\">\u2192</span><span class=\"mi\">1</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">energy</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"mi\">1</span><span class=\"p\">)</span>\n<span class=\"n\">trace</span><span class=\"w\">    </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"mi\">18</span><span class=\"p\">,</span><span class=\"mi\">8</span><span class=\"p\">,</span><span class=\"mi\">8</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">JEPA</span><span class=\"w\"> </span><span class=\"n\">target</span><span class=\"w\"> </span><span class=\"n\">enc</span><span class=\"w\">  </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">flatten</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">et</span><span class=\"w\">  </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"mi\">128</span><span class=\"p\">)</span><span class=\"w\">  </span><span class=\"err\">\u2500\u2518</span>\n</code></pre></div>\n<h2 id=\"jepa-design\">JEPA Design</h2>\n<span class=\"paragraph\">Two encoder instances share the same architecture (VQModel encoder + quant_conv),\ninitialized from the same Stage 0 VQ-VAE checkpoint:</span>\n<ul>\n<li><strong>Online encoder</strong> \u2014 first <code>DownEncoderBlock2D</code> frozen, second block trainable.\n  Updated by gradient descent.</li>\n<li><strong>JEPA target encoder</strong> \u2014 parameters are an EMA of the online encoder at\n  <code>\u03c4_jepa = 0.999</code>. <strong>Never</strong> updated by backprop. Prevents representational collapse.</li>\n</ul>\n<span class=\"paragraph\">Both the clean trace and the corrupted trace are passed through the JEPA target encoder.</span></span>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "36d9afb7843381f5774618b6bac8c4f5",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"coreenergypy-energy-model-architecture\">core/energy.py \u2014 Energy Model Architecture</h1>\n<span class=\"paragraph\">This notebook defines the hand-written <strong>Energy-Based Model (EBM)</strong> for chess\nboard comparison. There is no VQ-VAE, no pretrained weights, and no frozen layers \u2014\neverything trains from scratch in Stage 1.</span>\n<h2 id=\"system-overview\">System Overview</h2>\n<div class=\"language-haxe codehilite\"><pre><span></span><code><span class=\"n\">problem</span><span class=\"w\">  </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">18</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">ChessEncoder</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">online</span><span class=\"p\">)</span><span class=\"w\">       </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">ep</span><span class=\"w\">  </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">16</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2510</span>\n<span class=\"w\">                                                                                  </span><span class=\"err\">\u251c\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">FusionHead</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">energy</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,)</span>\n<span class=\"n\">trace</span><span class=\"w\">    </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">18</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">ChessEncoder</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">JEPA</span><span class=\"w\"> </span><span class=\"err\">target</span><span class=\"p\">)</span><span class=\"w\">  </span><span class=\"err\">\u2500\u2500\u25ba</span><span class=\"w\"> </span><span class=\"n\">et</span><span class=\"w\">  </span><span class=\"p\">(</span><span class=\"n\">B</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">16</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mi\">8</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2500\u2518</span>\n</code></pre></div>\n<h2 id=\"two-emas-coexist-cleanly\">Two EMAs \u2014 coexist cleanly</h2>\n<table>\n<thead>\n<tr>\n<th>EMA</th>\n<th>Decay</th>\n<th>Role</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>JEPA target encoder</strong></td>\n<td>\u03c4=0.999</td>\n<td>Structural \u2014 provides trace embeddings during training. Prevents representational collapse. Never updated by backprop.</td>\n</tr>\n<tr>\n<td><strong>Inference EMA</strong></td>\n<td>\u03c4=0.9999</td>\n<td>Quality \u2014 slow snapshot of all trainable params. Used only at eval/deploy time. Managed externally by training notebooks.</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"trainable-in-stage-1\">Trainable in Stage 1</h2>\n<ul>\n<li>Full <code>online_encoder</code> (all parameters \u2014 no freezing without pretrained init)</li>\n<li>Full <code>fusion_head</code> (all parameters)</li>\n<li><strong>Total: ~3.4M trainable parameters</strong></li>\n</ul>\n<h2 id=\"not-updated-by-gradient-descent\">Not updated by gradient descent</h2>\n<ul>\n<li><code>target_encoder</code> \u2014 drifts via JEPA EMA only</li>\n</ul></span>"
           }
         }
       ],
@@ -27,17 +34,24 @@
     {
       "id": "vblA",
       "code_hash": "cb6a193be22811641404ba7deb73b6ed",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "bkHC",
-      "code_hash": "d3f4803b033bcdfe6cfb770053b29b61",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"encoderwrapper\"><code>EncoderWrapper</code></h2>\n<span class=\"paragraph\">Wraps a VQModel encoder + quant_conv into a single <code>nn.Module</code> that:</span>\n<ol>\n<li>Runs the encoder to produce a <code>(B, 8, 4, 4)</code> feature map.</li>\n<li>Runs <code>quant_conv</code> on that map.</li>\n<li>Flattens to a <code>(B, 128)</code> vector.</li>\n</ol>\n<span class=\"paragraph\">The 4\u00d74\u00d78 = 128-dimensional flat vector is the board embedding fed to the fusion head.</span></span>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "ae62b2680affaac83abf62bfe30ff338",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"resnetblock\"><code>ResnetBlock</code></h2>\n<span class=\"paragraph\">Standard pre-norm residual conv block shared by both <code>ChessEncoder</code> and\n<code>FusionHead</code>. Uses GroupNorm + SiLU + two 3\u00d73 convolutions with a skip\nconnection. No downsampling \u2014 spatial resolution is preserved.</span>\n<div class=\"language-text codehilite\"><pre><span></span><code>x \u2500\u2500\u25ba GroupNorm \u2500\u2500\u25ba SiLU \u2500\u2500\u25ba Conv3x3 \u2500\u2500\u25ba GroupNorm \u2500\u2500\u25ba SiLU \u2500\u2500\u25ba Conv3x3 \u2500\u2500\u25ba + \u2500\u2500\u25ba out\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n</code></pre></div></span>"
           }
         }
       ],
@@ -45,18 +59,25 @@
     },
     {
       "id": "lEQa",
-      "code_hash": "5f645a630bcd62197ee905ae5d7161cb",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "PKri",
-      "code_hash": "f32ded628db485ad5704032c71f8b26f",
+      "code_hash": "a77ec96790aa2bbd8ff1e00b3f7489fb",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"fusionmlp\"><code>FusionMLP</code></h2>\n<span class=\"paragraph\">The 3-layer MLP that maps the 512-dim fused vector to a scalar energy.</span>\n<h3 id=\"4-way-fusion\">4-way fusion</h3>\n<span class=\"paragraph\">Given online embedding <code>ep</code> and target embedding <code>et</code>, both <code>(B, 128)</code>:</span>\n<div class=\"language-scdoc codehilite\"><pre><span></span><code>fused = cat([ep, et, ep - et, ep * et])   \u2192  (B, 512)\n</code></pre></div>\n<span class=\"paragraph\">The difference <code>ep \u2212 et</code> and element-wise product <code>ep \u2299 et</code> give the head\nexplicit <em>compare</em> signals, so it doesn't need to learn subtraction/multiplication\nfrom scratch inside the MLP.</span>\n<h3 id=\"mlp\">MLP</h3>\n<div class=\"language-cbmbas codehilite\"><pre><span></span><code><span class=\"mf\">512</span><span class=\"w\"> </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">LayerNorm</span><span class=\"w\"> </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">Linear</span><span class=\"p\">(</span><span class=\"mf\">512</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mf\">256</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">GELU</span>\n<span class=\"w\">    </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">LayerNorm</span><span class=\"w\"> </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">Linear</span><span class=\"p\">(</span><span class=\"mf\">256</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"mf\">128</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">GELU</span>\n<span class=\"w\">    </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">LayerNorm</span><span class=\"w\"> </span><span class=\"err\">\u2192</span><span class=\"w\"> </span><span class=\"n\">Linear</span><span class=\"p\">(</span><span class=\"mf\">128</span><span class=\"p\">,</span><span class=\"w\">   </span><span class=\"mf\">1</span><span class=\"p\">)</span>\n</code></pre></div>\n<span class=\"paragraph\">The output is an <strong>unbounded scalar</strong> \u2014 no sigmoid/tanh \u2014 so the margin ranking\nloss can push energies apart freely.</span></span>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "a23d83418adac87bf316691f3bcaf8d2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"chessencoder\"><code>ChessEncoder</code></h2>\n<span class=\"paragraph\">Maps an <code>(B, 18, 8, 8)</code> board tensor to a <code>(B, 16, 8, 8)</code> per-square\nfeature map. <strong>No spatial downsampling</strong> \u2014 every square retains its own\nfeature vector throughout.</span>\n<table>\n<thead>\n<tr>\n<th>Layer</th>\n<th>Shape out</th>\n<th>Notes</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>in_proj</code> Conv3\u00d73(18\u2192160)</td>\n<td>(B, 160, 8, 8)</td>\n<td>Expand channels</td>\n</tr>\n<tr>\n<td>4\u00d7 <code>ResnetBlock(160)</code></td>\n<td>(B, 160, 8, 8)</td>\n<td>Full-board receptive field after 4 blocks</td>\n</tr>\n<tr>\n<td><code>norm_out</code> GroupNorm + SiLU</td>\n<td>(B, 160, 8, 8)</td>\n<td></td>\n</tr>\n<tr>\n<td><code>out_proj</code> Conv1\u00d71(160\u219216)</td>\n<td>(B, 16, 8, 8)</td>\n<td>Compress to per-square embedding</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"sizing-rationale\">Sizing rationale</h3>\n<ul>\n<li><strong>Width 160, 4 blocks</strong>: 8 conv layers of 3\u00d73 kernels gives an effective receptive\n  field that covers the full 8\u00d78 board. Enough capacity for piece-relationship\n  features without overfitting on 180k pairs.</li>\n<li><strong>Output 16 channels</strong>: more than 12 piece classes, leaving capacity for\n  relational features. This is the input width the <code>FusionHead</code> expects.</li>\n<li><strong>~1.85M parameters</strong>: healthy data-to-parameter ratio with 180k training pairs.</li>\n</ul></span>"
           }
         }
       ],
@@ -64,18 +85,25 @@
     },
     {
       "id": "Xref",
-      "code_hash": "2e16b4e5ab452e0df1b55c11425cdda8",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "SFPL",
-      "code_hash": "b7f4055f36e4373275f68d080b957fc4",
+      "code_hash": "930c910f803013b6d99b95872e9943f1",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"energymodel\"><code>EnergyModel</code></h2>\n<span class=\"paragraph\">The top-level module that wires together:</span>\n<ul>\n<li><code>online_encoder</code>  \u2014 <code>EncoderWrapper</code> (last block trainable, first frozen)</li>\n<li><code>target_encoder</code>  \u2014 <code>EncoderWrapper</code> (JEPA EMA copy, no grad)</li>\n<li><code>fusion_mlp</code>      \u2014 <code>FusionMLP</code> (fully trainable)</li>\n</ul>\n<h3 id=\"trainable-parameters-gradient-descent\">Trainable parameters (gradient descent)</h3>\n<ul>\n<li><code>online_encoder.encoder.down_blocks[1]</code> (last DownEncoderBlock2D)</li>\n<li><code>online_encoder.encoder.mid_block</code></li>\n<li><code>online_encoder.quant_conv</code></li>\n<li>All of <code>fusion_mlp</code></li>\n</ul>\n<h3 id=\"non-trainable-frozen-or-ema-only\">Non-trainable (frozen or EMA-only)</h3>\n<ul>\n<li><code>online_encoder.encoder.conv_in</code></li>\n<li><code>online_encoder.encoder.down_blocks[0]</code></li>\n<li>All of <code>target_encoder</code> (drifts via EMA, never via backprop)</li>\n</ul>\n<h3 id=\"ema-update-rule-call-after-every-optimizer-step\">EMA update rule (call after every optimizer step)</h3>\n<div class=\"language-scdoc codehilite\"><pre><span></span><code>\u03b8_target \u2190 \u03c4 \u00b7 \u03b8_target + (1 \u2212 \u03c4) \u00b7 \u03b8_online    (\u03c4 = 0.999)\n</code></pre></div></span>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "0d22679eea26b85a32654daff64d60ce",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"fusionhead\"><code>FusionHead</code></h2>\n<span class=\"paragraph\">Compares two <code>(B, 16, 8, 8)</code> board embeddings and outputs a scalar energy.\nThis is the heaviest reasoning component \u2014 it must learn implicit chess\nunderstanding from 180k examples.</span>\n<h3 id=\"4-way-spatial-fusion\">4-way spatial fusion</h3>\n<div class=\"language-text codehilite\"><pre><span></span><code>ep, et  \u2192  cat([ep, et, ep\u2212et, ep\u2299et], dim=1)  \u2192  (B, 64, 8, 8)\n</code></pre></div>\n<span class=\"paragraph\">The difference <code>ep\u2212et</code> makes <strong>\"what changed?\"</strong> an explicit input feature.\nThe product <code>ep\u2299et</code> makes <strong>\"what stayed the same?\"</strong> explicit. The conv stack\ndoesn't have to discover these comparisons inside its weights.</span>\n<h3 id=\"architecture\">Architecture</h3>\n<table>\n<thead>\n<tr>\n<th>Layer</th>\n<th>Shape out</th>\n<th>Notes</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>in_proj</code> Conv3\u00d73(64\u2192192)</td>\n<td>(B, 192, 8, 8)</td>\n<td>Project fused input</td>\n</tr>\n<tr>\n<td>2\u00d7 <code>ResnetBlock(192)</code></td>\n<td>(B, 192, 8, 8)</td>\n<td>Spatial reasoning at full 8\u00d78</td>\n</tr>\n<tr>\n<td><code>norm_out</code> + SiLU</td>\n<td>(B, 192, 8, 8)</td>\n<td></td>\n</tr>\n<tr>\n<td>Global avg pool</td>\n<td>(B, 192)</td>\n<td>Board-level summary</td>\n</tr>\n<tr>\n<td>MLP 192\u2192192\u219296\u21921</td>\n<td>(B, 1)</td>\n<td>LayerNorm+GELU, unbounded scalar</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"sizing-rationale\">Sizing rationale</h3>\n<ul>\n<li><strong>2 ResNet blocks at width 192</strong>: with <code>in_proj</code> + 2 blocks \u00d7 2 convs each,\n  the spatial receptive field covers the full board. Enough capacity for tactical\n  move-quality signals.</li>\n<li><strong>Global avg pool then MLP</strong>: reduces (B, 192, 8, 8) to (B, 192) before scalar\n  reduction. The MLP does final reasoning with LayerNorm+GELU.</li>\n<li><strong>Unbounded output</strong>: no sigmoid/tanh, so the margin ranking loss can push\n  energies as far apart as the signal demands.</li>\n<li><strong>~1.5M parameters</strong>: together with encoder 1.85M \u2192 <strong>3.4M total</strong>.</li>\n</ul></span>"
           }
         }
       ],
@@ -83,18 +111,25 @@
     },
     {
       "id": "BYtC",
-      "code_hash": "2728453f811658f78dd6dbe693604007",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "RGSE",
-      "code_hash": "26ae4a567354147c76c52d1e15c24da3",
+      "code_hash": "661609d6d92d7da1df0cb8eaf50009a0",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"margin_ranking_loss\"><code>margin_ranking_loss</code></h2>\n<span class=\"paragraph\">Stage 1 training loss: pairwise margin ranking loss.</span>\n<div class=\"language-scdoc codehilite\"><pre><span></span><code>L = mean( max(0,  m + E(problem, clean_trace) \u2212 E(problem, corrupted_trace)) )\n</code></pre></div>\n<span class=\"paragraph\">Lower energy for clean traces, higher energy for corrupted ones.\nThe margin <code>m</code> starts at 1.0 (spec default).</span>\n<span class=\"paragraph\">Also returns the <strong>margin satisfaction rate</strong> \u2014 fraction of pairs where\n<code>E_clean + m &lt; E_corrupted</code> \u2014 used as the Stage 1 validation metric.</span></span>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "9210f91ed4f1acdf2e412f407d9183a9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"energymodel\"><code>EnergyModel</code></h2>\n<span class=\"paragraph\">Top-level module wiring together:</span>\n<ul>\n<li><code>online_encoder</code>  \u2014 <code>ChessEncoder</code>, all parameters trainable</li>\n<li><code>target_encoder</code>  \u2014 <code>ChessEncoder</code>, JEPA EMA copy, no backprop ever</li>\n<li><code>fusion_head</code>     \u2014 <code>FusionHead</code>, fully trainable</li>\n</ul>\n<h3 id=\"two-forward-methods\">Two forward methods</h3>\n<table>\n<thead>\n<tr>\n<th>Method</th>\n<th>When to use</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>forward(problem, trace)</code></td>\n<td><strong>Training</strong> \u2014 <code>torch.no_grad()</code> on target encoder, detaches <code>et</code></td>\n</tr>\n<tr>\n<td><code>forward_with_grad_on_trace(problem, trace)</code></td>\n<td><strong>Inference refinement</strong> \u2014 gradient flows through target encoder to compute \u2202E/\u2202x\u0302\u2080</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"jepa-ema-update-rule\">JEPA EMA update rule</h3>\n<span class=\"paragraph\"><div class=\"language-scdoc codehilite\"><pre><span></span><code>\u03b8_target \u2190 \u03c4 \u00b7 \u03b8_target + (1 \u2212 \u03c4) \u00b7 \u03b8_online    \u03c4 = 0.999\n</code></pre></div>\nCall <code>model.update_target_encoder()</code> after every <code>optimizer.step()</code>.</span></span>"
           }
         }
       ],
@@ -102,18 +137,25 @@
     },
     {
       "id": "Kclp",
-      "code_hash": "db39861fa780ae750a7e34c6cc3557c4",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "emfo",
-      "code_hash": "1b18bc1a3fe72abce437ac3dec92c2d5",
+      "code_hash": "032185993a3f103763773bc450c8a8c8",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"build_energy_model\"><code>build_energy_model</code></h2>\n<span class=\"paragraph\">Factory function that constructs a fully wired <code>EnergyModel</code> from a Stage 0\nVQ-VAE checkpoint path. This is the entry point used by the training notebooks.</span>\n<div class=\"language-python codehilite\"><pre><span></span><code><span class=\"kn\">from</span><span class=\"w\"> </span><span class=\"nn\">core.energy</span><span class=\"w\"> </span><span class=\"kn\">import</span> <span class=\"n\">build_energy_model</span>\n<span class=\"n\">model</span> <span class=\"o\">=</span> <span class=\"n\">build_energy_model</span><span class=\"p\">(</span><span class=\"s2\">&quot;checkpoints/vqvae.pt&quot;</span><span class=\"p\">,</span> <span class=\"n\">device</span><span class=\"o\">=</span><span class=\"s2\">&quot;cuda&quot;</span><span class=\"p\">)</span>\n</code></pre></div></span>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "8713d7aa805a10706f019f4c5ab25b13",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"margin_ranking_loss\"><code>margin_ranking_loss</code></h2>\n<span class=\"paragraph\">Stage 1 (and Stages 3\u20134) training loss \u2014 pairwise margin ranking:</span>\n<div class=\"language-scdoc codehilite\"><pre><span></span><code>L = mean( max(0,  m + E(problem, clean_trace) \u2212 E(problem, corrupted_trace)) )\n</code></pre></div>\n<span class=\"paragraph\">Also returns the <strong>margin satisfaction rate</strong> \u2014 fraction of pairs where\n<code>E_clean + m &lt; E_corrupted</code>. This is the primary Stage 1 validation metric.\nShould rise past 50% quickly and ideally reach 80% on easy-mix validation.</span></span>"
           }
         }
       ],
@@ -121,13 +163,20 @@
     },
     {
       "id": "Hstk",
-      "code_hash": "882d071a5950b598adbe576807672928",
-      "outputs": [],
+      "code_hash": "307679d0a34e5bfe7906e272c50cb1c5",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "nWHF",
-      "code_hash": "190e4b8eff2978a16b42c7b771b41494",
+      "code_hash": "fccd087d3391d536a864589afb8e7e0b",
       "outputs": [
         {
           "type": "data",
@@ -140,18 +189,25 @@
     },
     {
       "id": "iLit",
-      "code_hash": "8a66f68e2fda58bcbc9dcdf23b286238",
-      "outputs": [],
-      "console": []
-    },
-    {
-      "id": "ZHCJ",
-      "code_hash": "750a6b94331a968270201a56105880e3",
+      "code_hash": "76ad8e494ccd6935137f59282937d8e9",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"parameter-summary\">Parameter Summary</h2>\n<table>\n<thead>\n<tr>\n<th>Component</th>\n<th>Grad?</th>\n<th>Updated by</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>online_encoder.encoder.conv_in</code></td>\n<td>\u2717</td>\n<td>Frozen</td>\n</tr>\n<tr>\n<td><code>online_encoder.encoder.down_blocks[0]</code></td>\n<td>\u2717</td>\n<td>Frozen</td>\n</tr>\n<tr>\n<td><code>online_encoder.encoder.down_blocks[1]</code></td>\n<td>\u2713</td>\n<td>AdamW</td>\n</tr>\n<tr>\n<td><code>online_encoder.encoder.mid_block</code></td>\n<td>\u2713</td>\n<td>AdamW</td>\n</tr>\n<tr>\n<td><code>online_encoder.quant_conv</code></td>\n<td>\u2713</td>\n<td>AdamW</td>\n</tr>\n<tr>\n<td><code>fusion_mlp</code></td>\n<td>\u2713</td>\n<td>AdamW</td>\n</tr>\n<tr>\n<td><code>target_encoder</code> (all)</td>\n<td>\u2717</td>\n<td>JEPA EMA (\u03c4=0.999)</td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\">The inference EMA (\u03c4=0.9999) is managed externally by the training notebooks\nvia <code>diffusers.training_utils.EMAModel</code> \u2014 it is not part of this architecture file.</span></span>"
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>All sanity checks passed \u2713</strong></span>\n<table>\n<thead>\n<tr>\n<th>Check</th>\n<th>Result</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>ResnetBlock</code> shape preserved</td>\n<td>\u2713 <code>(2, 32, 8, 8)</code></td>\n</tr>\n<tr>\n<td><code>ChessEncoder</code> output shape</td>\n<td>\u2713 <code>(4, 16, 8, 8)</code></td>\n</tr>\n<tr>\n<td><code>FusionHead</code> output shape</td>\n<td>\u2713 <code>(4,)</code></td>\n</tr>\n<tr>\n<td><code>EnergyModel</code> forward output shapes</td>\n<td>\u2713 <code>(4,)</code></td>\n</tr>\n<tr>\n<td>Margin ranking loss scalar</td>\n<td>\u2713 <code>1.0043</code></td>\n</tr>\n<tr>\n<td>Margin satisfaction rate</td>\n<td><code>0.00%</code></td>\n</tr>\n<tr>\n<td>JEPA target EMA moved after update</td>\n<td><code>\u2713</code></td>\n</tr>\n<tr>\n<td>Cosine similarity (random init)</td>\n<td><code>1.0000</code> (expect \u22481.0 at init)</td>\n</tr>\n<tr>\n<td>Grad flows through trace at inference</td>\n<td><code>\u2713</code></td>\n</tr>\n<tr>\n<td>Target encoder requires_grad=False</td>\n<td><code>\u2713</code></td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\"><strong>Parameter counts</strong></span>\n<table>\n<thead>\n<tr>\n<th>Component</th>\n<th>Params</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>online_encoder</code></td>\n<td>1,876,016</td>\n</tr>\n<tr>\n<td><code>fusion_head</code></td>\n<td>1,496,833</td>\n</tr>\n<tr>\n<td><strong>Total trainable</strong></td>\n<td><strong>3,372,849</strong></td>\n</tr>\n<tr>\n<td><code>target_encoder</code> (EMA, not trained)</td>\n<td>1,876,016</td>\n</tr>\n<tr>\n<td>Full model total</td>\n<td>5,248,865</td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "c79cdc9e4e5c9ff88ec8a63602e18a18",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"architecture-summary\">Architecture Summary</h2>\n<table>\n<thead>\n<tr>\n<th>Component</th>\n<th>Params</th>\n<th>Key design</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>ChessEncoder</code> (online)</td>\n<td>~1.85M</td>\n<td>4\u00d7 ResnetBlock at width 160, no downsample, 18\u219216ch</td>\n</tr>\n<tr>\n<td><code>FusionHead</code></td>\n<td>~1.5M</td>\n<td>4-way spatial concat (64ch), 2\u00d7 ResnetBlock at width 192, global pool, MLP 192\u219296\u21921</td>\n</tr>\n<tr>\n<td><code>ChessEncoder</code> (JEPA target)</td>\n<td>~1.85M</td>\n<td>EMA copy of online encoder, \u03c4=0.999, no backprop</td>\n</tr>\n<tr>\n<td><strong>Energy model total (trainable)</strong></td>\n<td><strong>~3.4M</strong></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"key-invariants\">Key invariants</h3>\n<ul>\n<li><code>target_encoder.requires_grad</code> is always <code>False</code></li>\n<li><code>update_target_encoder()</code> must be called after every <code>optimizer.step()</code></li>\n<li>Training uses <code>forward()</code> (no grad through target encoder)</li>\n<li>Inference refinement uses <code>forward_with_grad_on_trace()</code> (grad through x\u0302\u2080)</li>\n<li>Output is an <strong>unbounded scalar</strong> \u2014 no sigmoid/tanh clamp</li>\n</ul></span>"
           }
         }
       ],

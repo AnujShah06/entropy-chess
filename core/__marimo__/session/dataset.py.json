@@ -1,0 +1,263 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "4b9e43a950f1412beeb63c54ce178e3c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"coredatasetpy-chess-pair-dataset-corruption-dataloader\"><code>core/dataset.py</code> \u2014 Chess pair dataset + corruption dataloader</h1>\n<span class=\"paragraph\">Defines:</span>\n<ul>\n<li><code>FEN_PIECES</code>, <code>PIECE_TO_CHANNEL</code> \u2014 channel-ordering constants matching the spec.</li>\n<li><code>fen_to_tensor</code> / <code>tensor_to_fen</code> \u2014 8\u00d78\u00d718 board representation per the spec\n  (channels 0\u201311 piece occupancy WPNBRQK then BPNBRQK, 12 STM, 13\u201316 castling, 17 EP).</li>\n<li><code>ChessPairDataset</code> \u2014 reads the <strong>precomputed</strong> CSV (5 columns: <code>problem_fen</code>,\n  <code>trace_fen</code>, <code>corrupt_shuffle</code>, <code>corrupt_legal_move</code>, <code>corrupt_piece_swap</code>) and on\n  <code>__getitem__</code> selects one corruption column according to a configurable mixture.</li>\n<li><code>make_dataloader</code> \u2014 convenience builder.</li>\n<li><code>train_val_indices</code> \u2014 deterministic 95/5 split via index hashing (seed 42).</li>\n</ul>\n<span class=\"paragraph\">Corruption-column mapping (fixed; matches the precompute):\ncol 3 = <code>corrupt_shuffle</code>, col 4 = <code>corrupt_legal_move</code>, col 5 = <code>corrupt_piece_swap</code>.</span>\n<span class=\"paragraph\">Mixture presets:</span>\n<ul>\n<li><code>EASY_MIX = (0.30, 0.40, 0.30)</code> \u2014 stages 1\u20133.</li>\n<li><code>HARD_MIX = (0.20, 0.60, 0.20)</code> \u2014 stage 4.</li>\n</ul>\n<span class=\"paragraph\">This notebook is <strong>definition-only</strong> so it can be imported by training\nnotebooks. Sanity cells at the bottom run a small forward pass and print\nshapes; they never write files or train.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "ac851b1c9014ecd5444ca299fbd634f3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "5475ce9abf246da19f6c0fee354c161e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"constants\">Constants</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "20d2b6f7bebb2ffe0c179c4014e70b4a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "b1df17df355d88f486803a5f954de4f9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "3eb57449033878cb83487e22a8c4e997",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"fen-tensor-conversion\">FEN \u2194 tensor conversion</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "1d1727634624457e74d42abf0d3e452c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "6d4875a8f8b63f1b97e8829fff237ff3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"train-val-split-deterministic-seed-42-95-5\">Train / val split (deterministic, seed 42, 95 / 5)</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "26cc9c87b3c4cc93fff3392d43f59062",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "31c169754dacc0bcc5c1f87570de92e3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"chesspairdataset\"><code>ChessPairDataset</code></h2>\n<span class=\"paragraph\">Reads the precomputed CSV. On <code>__getitem__</code> it picks <strong>one</strong> corruption\ncolumn according to <code>corruption_mix</code> (a 3-tuple summing to 1.0 over\n<code>corrupt_shuffle</code>, <code>corrupt_legal_move</code>, <code>corrupt_piece_swap</code> in that\norder) and returns three tensors: problem, clean trace, corrupted trace.</span>\n<span class=\"paragraph\">FENs are stored as Python strings until <code>__getitem__</code> converts the\nchosen three to tensors \u2014 this keeps memory low (~70 MB for FENs vs\n~3+ GB if we precomputed every tensor).</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "44e4a310ae551e6b79284a805d08ef1f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "cdd07113b5faf54dfb97b307e8c2687f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"make_dataloader-helper\"><code>make_dataloader</code> helper</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "4a393022cee4c696cc8707568d97ea41",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "593b8ab6176466db54c86635bb3608a3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"sanity-checks\">Sanity checks</h2>\n<span class=\"paragraph\">Cheap forward-pass cells. They run on import (so keep them light: load\na few rows, build one batch, print shapes). No file writes, no training.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "596efcc57a67b68622b0ef0ebff3245c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[sanity] dataset rows : 240,243\n[sanity] easy mix     : (0.3, 0.4, 0.3)\n[sanity] hard mix     : (0.2, 0.6, 0.2)\n[sanity] sample 0 shapes: problem (18, 8, 8), trace (18, 8, 8), corrupted (18, 8, 8)\n[sanity] sample 0 dtypes: torch.float32, sum(problem channels 0..11)=32\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "133aa4d944d981cff5d5b45596346376",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[sanity] empirical mix over 5000 samples: [0.3, 0.408, 0.292]  (target (0.3, 0.4, 0.3))\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "a7cc1520530b724a487a62088e685a1a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "/usr/local/lib/python3.10/dist-packages/torch/utils/data/dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.\n  super().__init__(loader)\n",
+          "mimetype": "text/plain"
+        },
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[sanity] batch shapes : problem (8, 18, 8, 8), trace (8, 18, 8, 8), corrupted (8, 18, 8, 8)\n[sanity] batch dtypes : torch.float32\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    }
+  ]
+}

@@ -1,49 +1,48 @@
 import marimo
 
-__generated_with = "0.9.0"
+__generated_with = "0.23.1"
 app = marimo.App(width="medium")
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        # `core/dataset.py` — FEN ↔ tensor helpers, datasets, corruption strategies
+def _(mo):
+    mo.md(r"""
+    # `core/dataset.py` — FEN ↔ tensor helpers, datasets, corruption strategies
 
-        This notebook defines the project's dataloader infrastructure. All other
-        notebooks (`training/stage*.py`, `inference/sample.py`) import from here.
+    This notebook defines the project's dataloader infrastructure. All other
+    notebooks (`training/stage*.py`, `inference/sample.py`) import from here.
 
-        **Defined here:**
+    **Defined here:**
 
-        - `fen_to_tensor` / `tensor_to_fen` — round-trip between FEN strings and
-          the project's 8×8×18 float tensor representation.
-        - Three corruption strategies for negative-trace generation
-          (`corrupt_batch_shuffle`, `corrupt_legal_move`, `corrupt_piece_swap`).
-        - `BoardDataset` — single-board dataset used by stage 0 (VQ-VAE
-          pretraining).
-        - `ChessPairDataset` — 3-tuple `(problem, clean_trace, corrupted_trace)`
-          dataset used by stages 1–4. The third tuple slot is always materialized
-          to keep training-loop signatures uniform across stages; when
-          `emit_corruption=False` it is filled with zeros.
-        - `make_dataloader` — convenience constructor returning a torch
-          `DataLoader` wired up with the custom collate function (which resolves
-          the in-batch shuffle corruption strategy).
+    - `fen_to_tensor` / `tensor_to_fen` — round-trip between FEN strings and
+      the project's 8×8×18 float tensor representation.
+    - Three corruption strategies for negative-trace generation
+      (`corrupt_batch_shuffle`, `corrupt_legal_move`, `corrupt_piece_swap`).
+    - `BoardDataset` — single-board dataset used by stage 0 (VQ-VAE
+      pretraining).
+    - `ChessPairDataset` — 3-tuple `(problem, clean_trace, corrupted_trace)`
+      dataset used by stages 1–4. The third tuple slot is always materialized
+      to keep training-loop signatures uniform across stages; when
+      `emit_corruption=False` it is filled with zeros.
+    - `make_dataloader` — convenience constructor returning a torch
+      `DataLoader` wired up with the custom collate function (which resolves
+      the in-batch shuffle corruption strategy).
 
-        **Not done here:** training, checkpointing, plotting (per the project
-        convention that `core/` notebooks are definition-only and import-safe).
-        """
-    )
+    **Not done here:** training, checkpointing, plotting (per the project
+    convention that `core/` notebooks are definition-only and import-safe).
+    """)
     return
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell
-def __():
+def _():
     import hashlib
     import random
     from pathlib import Path
@@ -53,38 +52,37 @@ def __():
     import pandas as pd
     import torch
     from torch.utils.data import DataLoader, Dataset
+
     return DataLoader, Dataset, Path, chess, hashlib, np, pd, random, torch
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Constants
+def _(mo):
+    mo.md(r"""
+    ## Constants
 
-        Channel layout (18 total, all in 8×8 grids):
+    Channel layout (18 total, all in 8×8 grids):
 
-        | Channels | Meaning |
-        |----------|---------|
-        | 0–5      | White pieces: P, N, B, R, Q, K |
-        | 6–11     | Black pieces: P, N, B, R, Q, K |
-        | 12       | Side-to-move (1.0 broadcast if white to move, else 0.0) |
-        | 13–16    | Castling rights: WK, WQ, BK, BQ (broadcast 1.0 if available) |
-        | 17       | En passant target square (1.0 at the target square, 0.0 elsewhere) |
+    | Channels | Meaning |
+    |----------|---------|
+    | 0–5      | White pieces: P, N, B, R, Q, K |
+    | 6–11     | Black pieces: P, N, B, R, Q, K |
+    | 12       | Side-to-move (1.0 broadcast if white to move, else 0.0) |
+    | 13–16    | Castling rights: WK, WQ, BK, BQ (broadcast 1.0 if available) |
+    | 17       | En passant target square (1.0 at the target square, 0.0 elsewhere) |
 
-        The empty-square state is implicit: zero on every piece channel. At
-        inference time a 13th "empty" logit is added before softmax — that is
-        handled in `inference/sample.py`, not here.
-        """
-    )
+    The empty-square state is implicit: zero on every piece channel. At
+    inference time a 13th "empty" logit is added before softmax — that is
+    handled in `inference/sample.py`, not here.
+    """)
     return
 
 
 @app.cell
-def __(Path):
+def _(Path):
     # Path to the raw CSV. The CSV must have at least the columns named below.
     # Stage 0 uses only PROBLEM_FEN_COL; stages 1–4 use both.
-    DATA_CSV_PATH = Path("/mnt/user-data/uploads/dataset_eval.csv")
+    DATA_CSV_PATH = Path("/workspace/core/dataset_eval.csv")
     PROBLEM_FEN_COL = "Position"
     BEST_MOVE_COL = "Best Move"  # UCI string; trace FEN is derived by applying it.
 
@@ -119,27 +117,25 @@ def __(Path):
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## FEN ↔ tensor helpers
+def _(mo):
+    mo.md(r"""
+    ## FEN ↔ tensor helpers
 
-        `fen_to_tensor` converts a FEN string to an 8×8×18 float tensor.
-        `tensor_to_fen` is its inverse and is used by evaluation code in
-        `inference/sample.py` to compare predictions to the ground-truth trace
-        and to validate legality with `chess.Board(fen).is_valid()`.
+    `fen_to_tensor` converts a FEN string to an 8×8×18 float tensor.
+    `tensor_to_fen` is its inverse and is used by evaluation code in
+    `inference/sample.py` to compare predictions to the ground-truth trace
+    and to validate legality with `chess.Board(fen).is_valid()`.
 
-        Convention for the rank dimension: rank 8 (top of the board, where black
-        starts) is row index 0, rank 1 (where white starts) is row index 7. This
-        matches `chess.square_rank` after a `7 - rank` flip and is the standard
-        choice in chess CNN papers.
-        """
-    )
+    Convention for the rank dimension: rank 8 (top of the board, where black
+    starts) is row index 0, rank 1 (where white starts) is row index 7. This
+    matches `chess.square_rank` after a `7 - rank` flip and is the standard
+    choice in chess CNN papers.
+    """)
     return
 
 
 @app.cell
-def __(
+def _(
     BOARD_C,
     BOARD_H,
     BOARD_W,
@@ -194,11 +190,12 @@ def __(
             t[EP_CHANNEL, 7 - ep_rank, ep_file] = 1.0
 
         return torch.from_numpy(t)
+
     return (fen_to_tensor,)
 
 
 @app.cell
-def __(
+def _(
     BOARD_H,
     BOARD_W,
     CASTLING_CHANNELS,
@@ -277,30 +274,29 @@ def __(
             board.ep_square = None
 
         return board.fen()
+
     return (tensor_to_fen,)
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## CSV loading, dedup, and deterministic train/val split
+def _(mo):
+    mo.md(r"""
+    ## CSV loading, dedup, and deterministic train/val split
 
-        - Reads `DATA_CSV_PATH` once.
-        - Drops duplicate `Position` rows (the raw CSV has ~341k rows from
-          repeated positions; deduping yields ~180k unique problem/best-move
-          pairs as expected by the spec).
-        - Derives the trace FEN per row by applying the UCI best move via
-          `python-chess`. Rows where the move fails to apply are dropped.
-        - Splits 95/5 by hashing each row's stable index with `SEED` so the
-          split is identical across all stages and runs.
-        """
-    )
+    - Reads `DATA_CSV_PATH` once.
+    - Drops duplicate `Position` rows (the raw CSV has ~341k rows from
+      repeated positions; deduping yields ~180k unique problem/best-move
+      pairs as expected by the spec).
+    - Derives the trace FEN per row by applying the UCI best move via
+      `python-chess`. Rows where the move fails to apply are dropped.
+    - Splits 95/5 by hashing each row's stable index with `SEED` so the
+      split is identical across all stages and runs.
+    """)
     return
 
 
 @app.cell
-def __(
+def _(
     BEST_MOVE_COL,
     DATA_CSV_PATH,
     PROBLEM_FEN_COL,
@@ -370,39 +366,38 @@ def __(
         df["split"] = ["train" if u < train_fraction else "val" for u in unit]
 
         return df
-    return (_derive_trace_fen, _hash_index_to_unit, load_pairs_dataframe)
+
+    return (load_pairs_dataframe,)
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Corruption strategies
+def _(mo):
+    mo.md(r"""
+    ## Corruption strategies
 
-        Each strategy returns an 8×8×18 float tensor representing a corrupted
-        trace board. The three strategies are mixed per the spec's stage-
-        dependent weights; the mix is supplied to `ChessPairDataset` as
-        `(p_shuffle, p_legal, p_piece_swap)` summing to 1.
+    Each strategy returns an 8×8×18 float tensor representing a corrupted
+    trace board. The three strategies are mixed per the spec's stage-
+    dependent weights; the mix is supplied to `ChessPairDataset` as
+    `(p_shuffle, p_legal, p_piece_swap)` summing to 1.
 
-        - **batch_shuffle** is materialized at collate time, since it needs a
-          sibling sample. `__getitem__` only marks it as the chosen kind and
-          returns a placeholder.
-        - **legal_move** picks a uniformly random legal move ≠ the best move and
-          pushes it. Falls back to `batch_shuffle` if the only legal move is the
-          best move.
-        - **piece_swap** is one of two equally weighted operations on a copy of
-          the clean trace tensor:
-            1. Swap the contents of two occupied squares.
-            2. Move one piece to a random square (overwriting whatever was
-               there).
-          Both produce a structurally non-reachable board.
-        """
-    )
+    - **batch_shuffle** is materialized at collate time, since it needs a
+      sibling sample. `__getitem__` only marks it as the chosen kind and
+      returns a placeholder.
+    - **legal_move** picks a uniformly random legal move ≠ the best move and
+      pushes it. Falls back to `batch_shuffle` if the only legal move is the
+      best move.
+    - **piece_swap** is one of two equally weighted operations on a copy of
+      the clean trace tensor:
+        1. Swap the contents of two occupied squares.
+        2. Move one piece to a random square (overwriting whatever was
+           there).
+      Both produce a structurally non-reachable board.
+    """)
     return
 
 
 @app.cell
-def __(BOARD_H, BOARD_W, PIECE_CHANNELS, chess, fen_to_tensor, torch):
+def _(BOARD_H, BOARD_W, PIECE_CHANNELS, chess, fen_to_tensor, torch):
     # Sentinel returned by ChessPairDataset when shuffle is the chosen kind, so
     # the collate fn knows to swap in a sibling. Using None inside a tuple
     # would break default_collate, so we use a distinct zero-shape tensor.
@@ -459,25 +454,24 @@ def __(BOARD_H, BOARD_W, PIECE_CHANNELS, chess, fen_to_tensor, torch):
             pieces[:, r2, c2] = piece_col
 
         return t
+
     return SHUFFLE_SENTINEL, corrupt_legal_move, corrupt_piece_swap
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## `BoardDataset` — single boards (stage 0)
+def _(mo):
+    mo.md(r"""
+    ## `BoardDataset` — single boards (stage 0)
 
-        Yields a single 8×8×18 problem tensor per index. Used by the VQ-VAE
-        pretraining stage, which is a pure reconstruction task and needs no
-        trace pairs.
-        """
-    )
+    Yields a single 8×8×18 problem tensor per index. Used by the VQ-VAE
+    pretraining stage, which is a pure reconstruction task and needs no
+    trace pairs.
+    """)
     return
 
 
 @app.cell
-def __(Dataset, fen_to_tensor, load_pairs_dataframe):
+def _(Dataset, fen_to_tensor, load_pairs_dataframe):
     class BoardDataset(Dataset):
         """Single-board dataset yielding 8×8×18 tensors of problem boards.
 
@@ -498,40 +492,39 @@ def __(Dataset, fen_to_tensor, load_pairs_dataframe):
 
         def __getitem__(self, idx: int):
             return fen_to_tensor(self.problem_fens[idx])
+
     return (BoardDataset,)
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## `ChessPairDataset` — 3-tuples (stages 1–4)
+def _(mo):
+    mo.md(r"""
+    ## `ChessPairDataset` — 3-tuples (stages 1–4)
 
-        Per `__getitem__` returns:
+    Per `__getitem__` returns:
 
-        ```
-        (problem_tensor, clean_trace_tensor, corrupted_trace_tensor)
-        ```
+    ```
+    (problem_tensor, clean_trace_tensor, corrupted_trace_tensor)
+    ```
 
-        where every entry is `(18, 8, 8)` float32. The third slot is always
-        materialized so the training-loop signature is uniform across stages:
+    where every entry is `(18, 8, 8)` float32. The third slot is always
+    materialized so the training-loop signature is uniform across stages:
 
-        - `emit_corruption=True` (stages 1, 3, 4): the corrupted trace is
-          generated according to the configured mix.
-        - `emit_corruption=False` (stage 2): the corrupted trace is a zero
-          tensor of the same shape, so the diffusion-only loop can ignore it
-          without changing its unpacking.
+    - `emit_corruption=True` (stages 1, 3, 4): the corrupted trace is
+      generated according to the configured mix.
+    - `emit_corruption=False` (stage 2): the corrupted trace is a zero
+      tensor of the same shape, so the diffusion-only loop can ignore it
+      without changing its unpacking.
 
-        Random sampling uses a per-worker RNG seeded from `(SEED, worker_id,
-        epoch)` to keep stage-internal runs reproducible while still varying
-        between epochs.
-        """
-    )
+    Random sampling uses a per-worker RNG seeded from `(SEED, worker_id,
+    epoch)` to keep stage-internal runs reproducible while still varying
+    between epochs.
+    """)
     return
 
 
 @app.cell
-def __(
+def _(
     BOARD_C,
     BOARD_H,
     BOARD_W,
@@ -642,40 +635,32 @@ def __(
             # KIND_SWAP
             corrupted_t = corrupt_piece_swap(clean_trace_t, rng)
             return problem_t, clean_trace_t, corrupted_t, KIND_SWAP
-    return (
-        ChessPairDataset,
-        EASY_MIX,
-        HARD_MIX,
-        KIND_LEGAL,
-        KIND_SHUFFLE,
-        KIND_SWAP,
-    )
+
+    return ChessPairDataset, EASY_MIX, KIND_SHUFFLE
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Collate function and `make_dataloader`
+def _(mo):
+    mo.md(r"""
+    ## Collate function and `make_dataloader`
 
-        The collate fn takes raw 4-tuples
-        `(problem, clean_trace, corrupted_or_sentinel, kind)` and produces
-        stacked batched tensors. For samples flagged as `KIND_SHUFFLE`, the
-        corrupted trace is filled in by sampling a *different* index from the
-        same batch. If the batch has only one sample, the shuffle target is
-        the clean trace itself — a degenerate case that callers should avoid
-        by using `batch_size >= 2`.
+    The collate fn takes raw 4-tuples
+    `(problem, clean_trace, corrupted_or_sentinel, kind)` and produces
+    stacked batched tensors. For samples flagged as `KIND_SHUFFLE`, the
+    corrupted trace is filled in by sampling a *different* index from the
+    same batch. If the batch has only one sample, the shuffle target is
+    the clean trace itself — a degenerate case that callers should avoid
+    by using `batch_size >= 2`.
 
-        Final batch shape: three tensors of shape `(B, 18, 8, 8)`. The kind
-        vector is dropped after corruption resolution since downstream code
-        does not need it.
-        """
-    )
+    Final batch shape: three tensors of shape `(B, 18, 8, 8)`. The kind
+    vector is dropped after corruption resolution since downstream code
+    does not need it.
+    """)
     return
 
 
 @app.cell
-def __(
+def _(
     BOARD_C,
     BOARD_H,
     BOARD_W,
@@ -772,27 +757,26 @@ def __(
             collate_fn=chess_pair_collate,
             persistent_workers=num_workers > 0,
         )
-    return chess_pair_collate, make_dataloader
+
+    return (chess_pair_collate,)
 
 
 @app.cell
-def __(mo):
-    mo.md(
-        r"""
-        ## Sanity checks
+def _(mo):
+    mo.md(r"""
+    ## Sanity checks
 
-        These cells exercise the helpers and datasets with tiny inputs. They
-        execute on import (since marimo notebooks run dependency-ordered cells
-        when imported as modules), so they MUST stay cheap and side-effect-
-        free: no file writes, no training. Heavier visualization is rendered
-        only when the notebook is opened with `marimo edit`.
-        """
-    )
+    These cells exercise the helpers and datasets with tiny inputs. They
+    execute on import (since marimo notebooks run dependency-ordered cells
+    when imported as modules), so they MUST stay cheap and side-effect-
+    free: no file writes, no training. Heavier visualization is rendered
+    only when the notebook is opened with `marimo edit`.
+    """)
     return
 
 
 @app.cell
-def __(BOARD_C, BOARD_H, BOARD_W, chess, fen_to_tensor, tensor_to_fen):
+def _(BOARD_C, BOARD_H, BOARD_W, chess, fen_to_tensor, tensor_to_fen):
     # FEN round-trip on the starting position.
     _start = chess.STARTING_FEN
     _t = fen_to_tensor(_start)
@@ -823,7 +807,7 @@ def __(BOARD_C, BOARD_H, BOARD_W, chess, fen_to_tensor, tensor_to_fen):
 
 
 @app.cell
-def __(chess, corrupt_legal_move, corrupt_piece_swap, fen_to_tensor, random):
+def _(chess, corrupt_legal_move, corrupt_piece_swap, fen_to_tensor, random):
     # Corruption strategies on the starting position.
     _start = chess.STARTING_FEN
     _rng = random.Random(0)
@@ -846,15 +830,15 @@ def __(chess, corrupt_legal_move, corrupt_piece_swap, fen_to_tensor, random):
 
 
 @app.cell
-def __(
+def _(
     BOARD_C,
     BOARD_H,
     BOARD_W,
+    ChessPairDataset,
     DataLoader,
     EASY_MIX,
     chess_pair_collate,
     load_pairs_dataframe,
-    ChessPairDataset,
 ):
     # End-to-end: build a tiny dataset, pull one batch, check shapes.
     # This loads the CSV. It's cached/reused if any other cell already loaded
@@ -909,7 +893,7 @@ def __(
 
 
 @app.cell
-def __(BoardDataset, load_pairs_dataframe):
+def _(BoardDataset, load_pairs_dataframe):
     # BoardDataset (stage 0) sanity: yields a single (18, 8, 8) tensor.
     _df = load_pairs_dataframe()
     _bd = BoardDataset(split="val", df=_df)

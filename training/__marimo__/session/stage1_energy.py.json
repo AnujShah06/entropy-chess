@@ -1,0 +1,222 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "2c9d0f61594edbaab233e1b9d0b23e95",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"stage-1-energy-model-pretraining-easy-mix\">Stage 1 \u2014 Energy Model Pretraining (Easy Mix)</h1>\n<span class=\"paragraph\">Train the energy model <strong>from scratch</strong> \u2014 full online problem encoder (~1.85M)</span>\n<ul>\n<li>fusion head (~1.5M) \u2248 <strong>~3.4M trainable params</strong> \u2014 to assign <strong>lower energy\nto (problem, clean trace)</strong> than to (problem, corrupted trace).</li>\n</ul>\n<table>\n<thead>\n<tr>\n<th></th>\n<th></th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>Loss</strong></td>\n<td>margin ranking: <code>relu(m + E(problem, clean) \u2212 E(problem, corrupted))</code></td>\n</tr>\n<tr>\n<td><strong>Margin</strong></td>\n<td>m = 1.0</td>\n</tr>\n<tr>\n<td><strong>Dataloader</strong></td>\n<td>easy mix (30% shuffle / 40% legal-move / 30% piece-swap)</td>\n</tr>\n<tr>\n<td><strong>JEPA target EMA</strong></td>\n<td>\u03c4_jepa = 0.999 (with 0.99 \u2192 0.999 warmup ramp over 500 steps)</td>\n</tr>\n<tr>\n<td><strong>Inference EMA</strong></td>\n<td>\u03c4_inf = 0.9999 (online encoder + fusion head, fp32)</td>\n</tr>\n<tr>\n<td><strong>Mixed precision</strong></td>\n<td>bf16 via <code>accelerate.Accelerator</code></td>\n</tr>\n<tr>\n<td><strong>Output</strong></td>\n<td><code>checkpoints/stage1_energy.pt</code></td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\">The diffusion model is <strong>not</strong> involved in this stage. The JEPA target encoder\nis updated by EMA only (never by gradients) \u2014 this is the structural collapse\nprevention without which the energy model trivially solves its loss by sending\nboth branches to a constant.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "51c6bbf73c77c26f020658d39bc08535",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "c56a2dc19ae5d3e4e4cda9ceb4a3b259",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "bc367ebb7e0f27d6ba965bc037487745",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "6687f19fe18c48017cf5118366d68d51",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "dc9db93e1d07e941212ba00f1fd02a87",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "9554be2b4da16488f59a6e715eae0550",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "095681a2e69770a006b2cfe8074a74ca",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "c0aab6edeb4de8d0e665a94bd42b46ba",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "d51ae3106df8fa7c421577531bbe97db",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "40f21e8afce24d01563e601f264024d2",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "aace65c08974fb8e72ef5878fef2b1cf",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "0c15393f4ab33396e2b5f7111c1e8d2f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "11f8b3fd8aeda6e965c65ec74518aa7d",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "99a18642f7098f1e73a9df814abd9882",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "32f7cbae26f8f0ef6aa68a8d2b824f39",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "38a005fb4211be5c918e6653e14059a1",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "d43631dc7c83a2fd83a3276dc5b6aae9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"loss\">Loss</h2>\n<span class=\"paragraph\">For each <code>(problem, clean_trace, corrupted_trace)</code> triple in a batch:</span>\n<ol>\n<li><code>e_clean      = energy_model(problem, clean_trace)</code>     \u2014 online encodes problem, <strong>JEPA target</strong> encodes the clean trace.</li>\n<li><code>e_corrupted  = energy_model(problem, corrupted_trace)</code> \u2014 online encodes problem, <strong>JEPA target</strong> encodes the corrupted trace.</li>\n<li><code>loss = mean( relu(margin + e_clean \u2212 e_corrupted) )</code></li>\n</ol>\n<span class=\"paragraph\">Gradients flow into the <strong>online encoder</strong> and <strong>fusion head</strong> only; the JEPA\ntarget encoder is updated solely by the EMA step at the end of each iteration.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "e51b9bff388c8156dd7ab76b24682262",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "18ecc5d62aa6a894a49e8b185b429bd9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "2e8e2d565cbbc22134bca2944e40ef52",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "b6a8c0ef6f5ee8ac6e7aec9266eeea3b",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "92dd32595f657cca9193d4282ea9d673",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "c8671f667c46e137aa93c1fef109e715",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "eecbc0ccb90a60233a49eb8ca7bd48d8",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nHfw",
+      "code_hash": "dbc744c7d6e151c7c5f8a76b11b7c292",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "xXTn",
+      "code_hash": "0d5ab474a8fb04beb5883eda7a3ab2be",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "AjVT",
+      "code_hash": "66cd0ce2470d36339630f81a762ca099",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "pHFh",
+      "code_hash": "215a3c784dbe8078bd17b6bf71734960",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "NCOB",
+      "code_hash": "1dc6daba8e39b3b1d085dfb1671208ae",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aqbW",
+      "code_hash": "cb9feb0efbd127998d0d72bc13563ac0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"whats-saved\">What's saved</h2>\n<span class=\"paragraph\"><code>checkpoints/stage1_energy.pt</code> contains:</span>\n<ul>\n<li><code>model_state_dict[\"online_encoder\" | \"fusion_head\"]</code> \u2014 <strong>live</strong> trained weights.</li>\n<li><code>inference_ema_state_dict[\"online_encoder\" | \"fusion_head\"]</code> \u2014 EMA at \u03c4_inf = 0.9999, <strong>what the inference notebook loads</strong>.</li>\n<li><code>jepa_target_encoder_state_dict</code> \u2014 JEPA target encoder weights (\u03c4_jepa = 0.999).</li>\n<li><code>optimizer_state_dict</code>, <code>scheduler_state_dict</code>, <code>step</code>, <code>epoch</code>, <code>rng_state</code>, <code>config</code>.</li>\n</ul>\n<span class=\"paragraph\">Stage 3 will reload all three weight dicts and continue training the energy\nmodel jointly with the diffusion model.</span>\n<h3 id=\"sanity-expectations-on-a-healthy-run\">Sanity expectations on a healthy run</h3>\n<ul>\n<li>Margin satisfaction climbs past 50% (random) within the first ~1\u20132 epochs and\n  should reach <strong>80%+</strong> on easy-mix validation by convergence.</li>\n<li>Mean energy gap <code>E_corrupted \u2212 E_clean</code> grows above the margin (1.0).</li>\n<li>Cosine similarity between online and JEPA target encoder outputs sits\n  somewhere in the <strong>0.3\u20130.95</strong> band \u2014 not pinned at 1.0 (collapse) and not\n  at 0.0 (runaway divergence).</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

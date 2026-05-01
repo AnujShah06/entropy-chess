@@ -1,0 +1,165 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "fb0a1b2923617fa43cfade1764ec1cdc",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"corevqvaepy-vq-vae-architecture\">core/vqvae.py \u2014 VQ-VAE Architecture</h1>\n<span class=\"paragraph\">This notebook defines the <code>diffusers.VQModel</code> configuration for the chess board\nVQ-VAE and the chess-specific reconstruction loss used in Stage 0 pretraining.</span>\n<span class=\"paragraph\">The VQ-VAE takes an <strong>8\u00d78\u00d718</strong> board tensor as input and produces a <strong>4\u00d74\u00d78</strong>\nlatent feature map, using two ResNet down/up blocks at widths 64 and 128,\nwith a 1024-entry codebook.</span>\n<span class=\"paragraph\">After Stage 0 training, only the encoder and <code>quant_conv</code> are used downstream \u2014\nthe codebook, decoder, and <code>post_quant_conv</code> are saved in the Stage 0 checkpoint\nbut discarded in Stages 1+.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "146e9b0d9fff0e8d40953527d41d303d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "bb90fa2a5a590b7cb19b0b186ae14c52",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"vqmodel-configuration\">VQModel Configuration</h2>\n<span class=\"paragraph\">Architecture parameters match the user's previously working configuration,\nwith <code>latent_channels</code> bumped from 4 \u2192 8 for a richer representation.</span>\n<table>\n<thead>\n<tr>\n<th>Parameter</th>\n<th>Value</th>\n<th>Notes</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>in_channels</code> / <code>out_channels</code></td>\n<td>18</td>\n<td>12 piece + 6 metadata channels</td>\n</tr>\n<tr>\n<td><code>down_block_types</code></td>\n<td><code>(DownEncoderBlock2D, DownEncoderBlock2D)</code></td>\n<td>Two 2\u00d7 downsamples: 8\u00d78 \u2192 4\u00d74</td>\n</tr>\n<tr>\n<td><code>up_block_types</code></td>\n<td><code>(UpDecoderBlock2D, UpDecoderBlock2D)</code></td>\n<td>Symmetric decoder</td>\n</tr>\n<tr>\n<td><code>block_out_channels</code></td>\n<td><code>(64, 128)</code></td>\n<td>Width at each block level</td>\n</tr>\n<tr>\n<td><code>layers_per_block</code></td>\n<td>2</td>\n<td>ResNet layers per block</td>\n</tr>\n<tr>\n<td><code>mid_block_add_attention</code></td>\n<td>True</td>\n<td>Self-attention at bottleneck</td>\n</tr>\n<tr>\n<td><code>latent_channels</code></td>\n<td><strong>8</strong></td>\n<td>Bumped from 4; 4\u00d74\u00d78 latent</td>\n</tr>\n<tr>\n<td><code>num_vq_embeddings</code></td>\n<td>1024</td>\n<td>Codebook size</td>\n</tr>\n<tr>\n<td><code>norm_type</code></td>\n<td><code>group</code></td>\n<td>GroupNorm</td>\n</tr>\n<tr>\n<td><code>norm_num_groups</code></td>\n<td>8</td>\n<td>Groups for GroupNorm</td>\n</tr>\n<tr>\n<td><code>force_upcast</code></td>\n<td>False</td>\n<td>No fp32 upcasting needed</td>\n</tr>\n<tr>\n<td><code>lookup_from_codebook</code></td>\n<td>True</td>\n<td>Straight-through codebook lookup</td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "1b9afd5de1460da3e930e19398049c0d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "35fec4a70e4e543c9379a32e10d27862",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"chess-specific-reconstruction-loss\">Chess-Specific Reconstruction Loss</h2>\n<span class=\"paragraph\">A weighted combination of four terms:</span>\n<table>\n<thead>\n<tr>\n<th>Term</th>\n<th>Weight</th>\n<th>Description</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>Cross-entropy (piece)</td>\n<td>1.0</td>\n<td>13-class softmax (12 pieces + empty) per square</td>\n</tr>\n<tr>\n<td>MSE (stabilizer)</td>\n<td>0.25</td>\n<td>Raw MSE on all 18 output channels for early-training stability</td>\n</tr>\n<tr>\n<td>BCE (metadata)</td>\n<td>0.5</td>\n<td>Binary cross-entropy on channels 12\u201317 (side-to-move, castling, en passant)</td>\n</tr>\n<tr>\n<td>Commitment loss</td>\n<td>1.0</td>\n<td>VQ codebook commitment loss returned by <code>VQModel</code></td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\">The <strong>empty-square logit</strong> for the piece cross-entropy is computed as\n<code>\u2212max(piece_channels)</code> so that a square with no piece gets a strong empty signal.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "544b999a2e3244883ce29af489c2dfc6",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "0b30395154a406a9438cd6fc15dd01ef",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"encoder-extraction-helpers\">Encoder Extraction Helpers</h2>\n<span class=\"paragraph\">After Stage 0, downstream stages (energy model, Stage 1+) need only the\nencoder + <code>quant_conv</code>. This helper extracts them from a full VQ-VAE and\noptionally freezes the <strong>first</strong> <code>DownEncoderBlock2D</code> (index 0) plus <code>conv_in</code>,\nleaving the <strong>second</strong> block (index 1) trainable \u2014 matching the spec's\n\"first block frozen, last block trainable\" intent.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "9cebd62f9efeef962030094eef98186a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "fccd087d3391d536a864589afb8e7e0b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"sanity-checks-cheap-no-file-writes-safe-on-import\">Sanity Checks <em>(cheap \u2014 no file writes, safe on import)</em></h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "4868f58616a19559ce32c1c187e5a13f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Shape check passed \u2713</strong></span>\n<table>\n<thead>\n<tr>\n<th>Tensor</th>\n<th>Shape</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>Input</td>\n<td><code>(2, 18, 8, 8)</code></td>\n</tr>\n<tr>\n<td>Reconstruction</td>\n<td><code>(2, 18, 8, 8)</code></td>\n</tr>\n<tr>\n<td>VQ loss</td>\n<td><code>0.0656</code></td>\n</tr>\n<tr>\n<td>Total loss</td>\n<td><code>3.5209</code></td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\">Loss breakdown: piece=<code>3.0446</code> \u00b7 mse=<code>0.1103</code> \u00b7 meta=<code>0.7663</code> \u00b7 vq=<code>0.0656</code></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "74023986540a8683228f73fe495e3c15",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Parameter counts \u2713</strong></span>\n<table>\n<thead>\n<tr>\n<th>Component</th>\n<th>Params</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>Full VQ-VAE</td>\n<td>3,376,618</td>\n</tr>\n<tr>\n<td>Encoder total</td>\n<td>1,388,552</td>\n</tr>\n<tr>\n<td>Encoder trainable (last block + mid_block)</td>\n<td>1,192,968</td>\n</tr>\n<tr>\n<td>Encoder frozen (first block + conv_in)</td>\n<td>195,584</td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

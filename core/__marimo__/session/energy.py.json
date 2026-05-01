@@ -6,8 +6,8 @@
   },
   "cells": [
     {
-      "id": "Hbol",
-      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "id": "setup",
+      "code_hash": "e558baf519323febd4da72991e453da1",
       "outputs": [
         {
           "type": "data",
@@ -19,7 +19,7 @@
       "console": []
     },
     {
-      "id": "MJUe",
+      "id": "Hbol",
       "code_hash": "36d9afb7843381f5774618b6bac8c4f5",
       "outputs": [
         {
@@ -32,20 +32,7 @@
       "console": []
     },
     {
-      "id": "vblA",
-      "code_hash": "cb6a193be22811641404ba7deb73b6ed",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
-      "console": []
-    },
-    {
-      "id": "bkHC",
+      "id": "MJUe",
       "code_hash": "ae62b2680affaac83abf62bfe30ff338",
       "outputs": [
         {
@@ -58,7 +45,7 @@
       "console": []
     },
     {
-      "id": "lEQa",
+      "id": "vblA",
       "code_hash": "a77ec96790aa2bbd8ff1e00b3f7489fb",
       "outputs": [
         {
@@ -71,7 +58,7 @@
       "console": []
     },
     {
-      "id": "PKri",
+      "id": "bkHC",
       "code_hash": "a23d83418adac87bf316691f3bcaf8d2",
       "outputs": [
         {
@@ -84,8 +71,8 @@
       "console": []
     },
     {
-      "id": "Xref",
-      "code_hash": "930c910f803013b6d99b95872e9943f1",
+      "id": "lEQa",
+      "code_hash": "851e35305947de67ffe59ab605bb6fa8",
       "outputs": [
         {
           "type": "data",
@@ -97,7 +84,7 @@
       "console": []
     },
     {
-      "id": "SFPL",
+      "id": "PKri",
       "code_hash": "0d22679eea26b85a32654daff64d60ce",
       "outputs": [
         {
@@ -110,8 +97,8 @@
       "console": []
     },
     {
-      "id": "BYtC",
-      "code_hash": "661609d6d92d7da1df0cb8eaf50009a0",
+      "id": "Xref",
+      "code_hash": "cd9bf329d531cc049366cf248b6cfa21",
       "outputs": [
         {
           "type": "data",
@@ -123,7 +110,7 @@
       "console": []
     },
     {
-      "id": "RGSE",
+      "id": "SFPL",
       "code_hash": "9210f91ed4f1acdf2e412f407d9183a9",
       "outputs": [
         {
@@ -136,7 +123,7 @@
       "console": []
     },
     {
-      "id": "Kclp",
+      "id": "BYtC",
       "code_hash": "032185993a3f103763773bc450c8a8c8",
       "outputs": [
         {
@@ -149,7 +136,7 @@
       "console": []
     },
     {
-      "id": "emfo",
+      "id": "RGSE",
       "code_hash": "8713d7aa805a10706f019f4c5ab25b13",
       "outputs": [
         {
@@ -162,7 +149,7 @@
       "console": []
     },
     {
-      "id": "Hstk",
+      "id": "Kclp",
       "code_hash": "307679d0a34e5bfe7906e272c50cb1c5",
       "outputs": [
         {
@@ -175,7 +162,7 @@
       "console": []
     },
     {
-      "id": "nWHF",
+      "id": "emfo",
       "code_hash": "fccd087d3391d536a864589afb8e7e0b",
       "outputs": [
         {
@@ -188,20 +175,20 @@
       "console": []
     },
     {
-      "id": "iLit",
+      "id": "Hstk",
       "code_hash": "76ad8e494ccd6935137f59282937d8e9",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>All sanity checks passed \u2713</strong></span>\n<table>\n<thead>\n<tr>\n<th>Check</th>\n<th>Result</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>ResnetBlock</code> shape preserved</td>\n<td>\u2713 <code>(2, 32, 8, 8)</code></td>\n</tr>\n<tr>\n<td><code>ChessEncoder</code> output shape</td>\n<td>\u2713 <code>(4, 16, 8, 8)</code></td>\n</tr>\n<tr>\n<td><code>FusionHead</code> output shape</td>\n<td>\u2713 <code>(4,)</code></td>\n</tr>\n<tr>\n<td><code>EnergyModel</code> forward output shapes</td>\n<td>\u2713 <code>(4,)</code></td>\n</tr>\n<tr>\n<td>Margin ranking loss scalar</td>\n<td>\u2713 <code>1.0043</code></td>\n</tr>\n<tr>\n<td>Margin satisfaction rate</td>\n<td><code>0.00%</code></td>\n</tr>\n<tr>\n<td>JEPA target EMA moved after update</td>\n<td><code>\u2713</code></td>\n</tr>\n<tr>\n<td>Cosine similarity (random init)</td>\n<td><code>1.0000</code> (expect \u22481.0 at init)</td>\n</tr>\n<tr>\n<td>Grad flows through trace at inference</td>\n<td><code>\u2713</code></td>\n</tr>\n<tr>\n<td>Target encoder requires_grad=False</td>\n<td><code>\u2713</code></td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\"><strong>Parameter counts</strong></span>\n<table>\n<thead>\n<tr>\n<th>Component</th>\n<th>Params</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>online_encoder</code></td>\n<td>1,876,016</td>\n</tr>\n<tr>\n<td><code>fusion_head</code></td>\n<td>1,496,833</td>\n</tr>\n<tr>\n<td><strong>Total trainable</strong></td>\n<td><strong>3,372,849</strong></td>\n</tr>\n<tr>\n<td><code>target_encoder</code> (EMA, not trained)</td>\n<td>1,876,016</td>\n</tr>\n<tr>\n<td>Full model total</td>\n<td>5,248,865</td>\n</tr>\n</tbody>\n</table></span>"
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>All sanity checks passed \u2713</strong></span>\n<table>\n<thead>\n<tr>\n<th>Check</th>\n<th>Result</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>ResnetBlock</code> shape preserved</td>\n<td>\u2713 <code>(2, 32, 8, 8)</code></td>\n</tr>\n<tr>\n<td><code>ChessEncoder</code> output shape</td>\n<td>\u2713 <code>(4, 16, 8, 8)</code></td>\n</tr>\n<tr>\n<td><code>FusionHead</code> output shape</td>\n<td>\u2713 <code>(4,)</code></td>\n</tr>\n<tr>\n<td><code>EnergyModel</code> forward output shapes</td>\n<td>\u2713 <code>(4,)</code></td>\n</tr>\n<tr>\n<td>Margin ranking loss scalar</td>\n<td>\u2713 <code>1.0679</code></td>\n</tr>\n<tr>\n<td>Margin satisfaction rate</td>\n<td><code>0.00%</code></td>\n</tr>\n<tr>\n<td>JEPA target EMA moved after update</td>\n<td><code>\u2713</code></td>\n</tr>\n<tr>\n<td>Cosine similarity (random init)</td>\n<td><code>1.0000</code> (expect \u22481.0 at init)</td>\n</tr>\n<tr>\n<td>Grad flows through trace at inference</td>\n<td><code>\u2713</code></td>\n</tr>\n<tr>\n<td>Target encoder requires_grad=False</td>\n<td><code>\u2713</code></td>\n</tr>\n</tbody>\n</table>\n<span class=\"paragraph\"><strong>Parameter counts</strong></span>\n<table>\n<thead>\n<tr>\n<th>Component</th>\n<th>Params</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>online_encoder</code></td>\n<td>1,876,016</td>\n</tr>\n<tr>\n<td><code>fusion_head</code></td>\n<td>1,496,833</td>\n</tr>\n<tr>\n<td><strong>Total trainable</strong></td>\n<td><strong>3,372,849</strong></td>\n</tr>\n<tr>\n<td><code>target_encoder</code> (EMA, not trained)</td>\n<td>1,876,016</td>\n</tr>\n<tr>\n<td>Full model total</td>\n<td>5,248,865</td>\n</tr>\n</tbody>\n</table></span>"
           }
         }
       ],
       "console": []
     },
     {
-      "id": "ZHCJ",
+      "id": "iLit",
       "code_hash": "c79cdc9e4e5c9ff88ec8a63602e18a18",
       "outputs": [
         {

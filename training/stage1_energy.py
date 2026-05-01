@@ -40,6 +40,13 @@ def _(mo):
 
 @app.cell
 def _():
+    import sys
+    from pathlib import Path as _Path
+
+    _PROJECT_ROOT = _Path(__file__).resolve().parent.parent
+    if str(_PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(_PROJECT_ROOT))
+
     import copy
     import random
     from pathlib import Path
@@ -67,7 +74,7 @@ def _():
 def _():
     # Project notebooks-as-modules (Pattern A from the spec).
     #
-    # `get_train_val_indices` is the assumed name of the deterministic 95/5
+    # `train_val_indices` is the assumed name of the deterministic 95/5
     # split helper the spec says lives in `core/dataset.py` ("computed once
     # in core/dataset.py and reused identically across all stages"). Rename
     # this import if your helper is exported under a different name —
@@ -75,17 +82,12 @@ def _():
     # which only depend on the helper's tuple return.
     from core.dataset import (
         ChessPairDataset,
-        get_train_val_indices,
+        train_val_indices,
         make_dataloader,
     )
     from core.energy import EnergyModel
 
-    return (
-        ChessPairDataset,
-        EnergyModel,
-        get_train_val_indices,
-        make_dataloader,
-    )
+    return EnergyModel, make_dataloader
 
 
 @app.cell
@@ -134,8 +136,8 @@ def _():
         # Precision / acceleration
         "mixed_precision": "bf16",
         # Logging cadence
-        "log_every_steps": 20,
-        "cosine_check_every_steps": 200,
+        "log_every_steps": 500,
+        "cosine_check_every_steps": 500,
         # Reproducibility
         "seed": 42,
         # IO
@@ -186,33 +188,20 @@ def _(WANDB_AVAILABLE, accelerator, config, wandb):
 
 
 @app.cell
-def _(ChessPairDataset, config, get_train_val_indices, make_dataloader):
-    # Deterministic 95/5 split, computed once and reused identically across
-    # all stages (per spec). Both datasets share corruption mix and seed.
-    train_indices, val_indices = get_train_val_indices(
-        val_fraction=0.05, seed=config["seed"]
-    )
-    train_dataset = ChessPairDataset(
-        corruption_mix=config["easy_corruption_mix"],
-        indices=train_indices,
-        seed=config["seed"],
-    )
-    val_dataset = ChessPairDataset(
-        corruption_mix=config["easy_corruption_mix"],
-        indices=val_indices,
-        seed=config["seed"],
-    )
+def _(config, make_dataloader):
     train_loader = make_dataloader(
-        train_dataset,
+        split="train",
+        corruption_mix=config["easy_corruption_mix"],
         batch_size=config["batch_size"],
-        shuffle=True,
         num_workers=config["num_workers"],
+        seed=config["seed"],
     )
     val_loader = make_dataloader(
-        val_dataset,
+        split="val",
+        corruption_mix=config["easy_corruption_mix"],
         batch_size=config["batch_size"],
-        shuffle=False,
         num_workers=config["num_workers"],
+        seed=config["seed"],
     )
     return train_loader, val_loader
 
@@ -564,16 +553,9 @@ def _(
             ):
                 payload = {
                     "train/loss": loss.detach().float().item(),
-                    "train/energy_gap_mean": (e_corr - e_clean)
-                    .detach()
-                    .float()
-                    .mean()
-                    .item(),
+                    "train/energy_gap_mean": (e_corr - e_clean).detach().float().mean().item(),
                     "train/e_clean_mean": e_clean.detach().float().mean().item(),
-                    "train/e_corrupted_mean": e_corr.detach()
-                    .float()
-                    .mean()
-                    .item(),
+                    "train/e_corrupted_mean": e_corr.detach().float().mean().item(),
                     "train/lr": lr_scheduler_p.get_last_lr()[0],
                     "train/tau_jepa": tau_jepa_now,
                     "epoch": epoch,

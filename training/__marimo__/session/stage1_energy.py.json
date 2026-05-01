@@ -8,12 +8,19 @@
     {
       "id": "Hbol",
       "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "MJUe",
-      "code_hash": "2c9d0f61594edbaab233e1b9d0b23e95",
+      "code_hash": "6b7419f653c9d9ee9a2f65f5ef78e387",
       "outputs": [
         {
           "type": "data",
@@ -26,103 +33,229 @@
     },
     {
       "id": "vblA",
-      "code_hash": "51c6bbf73c77c26f020658d39bc08535",
-      "outputs": [],
+      "code_hash": "9758a1bc31f8404c232a64d4f586985e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "bkHC",
-      "code_hash": "c56a2dc19ae5d3e4e4cda9ceb4a3b259",
-      "outputs": [],
+      "code_hash": "c7fe47750a7ed47feec5d5abbdf94771",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "lEQa",
       "code_hash": "bc367ebb7e0f27d6ba965bc037487745",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "PKri",
-      "code_hash": "6687f19fe18c48017cf5118366d68d51",
-      "outputs": [],
+      "code_hash": "ef6581b1dbde0321c340640520b81b6e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "Xref",
       "code_hash": "dc9db93e1d07e941212ba00f1fd02a87",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "SFPL",
       "code_hash": "9554be2b4da16488f59a6e715eae0550",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "BYtC",
       "code_hash": "095681a2e69770a006b2cfe8074a74ca",
-      "outputs": [],
-      "console": []
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[wandb] init failed (No API key configured. Use `wandb login` to log in.); falling back to stdout logging\n[wandb] inactive \u2014 logging to stdout only\n",
+          "mimetype": "text/plain"
+        }
+      ]
     },
     {
       "id": "RGSE",
-      "code_hash": "c0aab6edeb4de8d0e665a94bd42b46ba",
-      "outputs": [],
+      "code_hash": "1b92ed71c671d5afe7705efb2a42ffc9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "Kclp",
       "code_hash": "d51ae3106df8fa7c421577531bbe97db",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "emfo",
       "code_hash": "40f21e8afce24d01563e601f264024d2",
-      "outputs": [],
-      "console": []
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "online_encoder params : 1,876,016\nfusion_head    params : 1,496,833\ntarget encoder params : 1,876,016  (frozen, EMA-only)\ntrainable      params : 3,372,849\n",
+          "mimetype": "text/plain"
+        }
+      ]
     },
     {
       "id": "Hstk",
       "code_hash": "aace65c08974fb8e72ef5878fef2b1cf",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "nWHF",
       "code_hash": "0c15393f4ab33396e2b5f7111c1e8d2f",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "iLit",
       "code_hash": "11f8b3fd8aeda6e965c65ec74518aa7d",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div class=\"nn-t\"><style>.nn-t {\n  font-size: 0.8125rem;\n  line-height: 1.5;\n  background-color: var(--slate-1);\n  color: var(--slate-12);\n  border-radius: 6px;\n}\n\n/* Header */\n.nn-t-header {\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.625rem 0.75rem 0.5rem 0.75rem;\n}\n.nn-t-root {\n  font-family: monospace;\n  font-size: 0.875rem;\n  font-weight: 600;\n  color: var(--slate-12);\n}\n.nn-t-summary {\n  font-family: monospace;\n  font-size: 0.75rem;\n  color: var(--slate-11);\n  margin-left: auto;\n}\n.nn-t-divider {\n  height: 1px;\n  background-color: var(--slate-3);\n  margin: 0 0.75rem;\n}\n\n/* Body */\n.nn-t-body {\n  padding: 0.5rem 0 0.5rem 0.75rem;\n}\n\n/* Shared row layout */\n.nn-t-leaf,\n.nn-t-node > summary,\n.nn-t-expand > summary {\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  padding: 0.1875rem 0.75rem 0.1875rem 0;\n  white-space: nowrap;\n}\n.nn-t-leaf:hover,\n.nn-t-node > summary:hover,\n.nn-t-expand > summary:hover {\n  background: var(--slate-2);\n}\n\n/* Expandable nodes */\n.nn-t-node {\n  margin: 0;\n  padding: 0;\n}\n.nn-t-node > summary {\n  cursor: pointer;\n  list-style: none;\n}\n.nn-t-node > summary::-webkit-details-marker {\n  display: none;\n}\n\n/* Disclosure arrow */\n.nn-t-arrow {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 1rem;\n  flex-shrink: 0;\n  color: var(--slate-9);\n  transition: transform 0.12s;\n  font-size: 0.5rem;\n}\n.nn-t-node[open] > summary .nn-t-arrow {\n  transform: rotate(90deg);\n}\n\n/* Leaf spacer matches arrow width */\n.nn-t-spacer {\n  display: inline-block;\n  width: 1rem;\n  flex-shrink: 0;\n}\n\n/* Children with indent guide */\n.nn-t-children {\n  margin-left: calc(0.5rem - 1px);\n  padding-left: 0.75rem;\n  border-left: 1px solid var(--slate-3);\n}\n\n/* Text elements */\n.nn-t-name {\n  font-family: monospace;\n  font-size: 0.8125rem;\n  font-weight: 500;\n  color: var(--slate-12);\n}\n.nn-t-type {\n  font-family: monospace;\n  font-size: 0.8125rem;\n  font-weight: 600;\n  color: var(--slate-12);\n  padding: 0.0625rem 0.375rem;\n  border-radius: 0.1875rem;\n  background: var(--slate-3);\n}\n.nn-t-type[data-cat=\"weight\"] { --pill-bg: var(--blue-3); --pill-fg: var(--blue-11); }\n.nn-t-type[data-cat=\"norm\"]   { --pill-bg: var(--green-3); --pill-fg: var(--green-11); }\n.nn-t-type[data-cat=\"act\"]    { --pill-bg: var(--orange-3); --pill-fg: var(--orange-11); }\n.nn-t-type[data-cat=\"reg\"]    { --pill-bg: var(--crimson-3); --pill-fg: var(--crimson-11); }\n.nn-t-type[data-cat] {\n  background: var(--pill-bg);\n  color: var(--pill-fg);\n}\n/* Positional args (always visible, never truncated) */\n.nn-t-pos {\n  font-family: monospace;\n  font-size: 0.8125rem;\n  color: var(--slate-11);\n  flex-shrink: 0;\n}\n\n/* Keyword args (truncated with ellipsis) */\n.nn-t-args {\n  font-family: monospace;\n  font-size: 0.8125rem;\n  color: var(--slate-11);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  min-width: 0;\n}\n\n/* Expandable args */\n.nn-t-expand {\n  margin: 0;\n  padding: 0;\n}\n.nn-t-expand > summary {\n  cursor: pointer;\n  list-style: none;\n}\n.nn-t-expand > summary::-webkit-details-marker {\n  display: none;\n}\n.nn-t-expand[open] > summary .nn-t-args {\n  display: none;\n}\n.nn-t-expand-body {\n  font-family: monospace;\n  font-size: 0.8125rem;\n  color: var(--slate-11);\n  padding: 0 0.75rem 0.25rem 2.75rem;\n  line-height: 1.6;\n}\n.nn-t-key {\n  color: var(--slate-9);\n}\n.nn-t-expand-sep {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n  margin: 0.125rem 0 0 0;\n}\n.nn-t-expand-sep::after {\n  content: \"\";\n  flex: 1;\n  height: 1px;\n  background: var(--slate-3);\n}\n.nn-t-expand-sep-label {\n  font-size: 0.5625rem;\n  text-transform: uppercase;\n  letter-spacing: 0.04em;\n  color: var(--slate-8);\n  flex-shrink: 0;\n}\n\n/* Param count */\n.nn-t-params {\n  color: var(--slate-10);\n  font-family: monospace;\n  font-size: 0.75rem;\n  margin-left: auto;\n  padding-left: 1rem;\n  flex-shrink: 0;\n}\n[data-frozen] > .nn-t-type,\n[data-frozen] > .nn-t-pos,\n[data-frozen] > .nn-t-args,\n[data-frozen] > .nn-t-params,\n[data-frozen] > .nn-t-spacer,\n[data-frozen] > summary > .nn-t-type,\n[data-frozen] > summary > .nn-t-pos,\n[data-frozen] > summary > .nn-t-args,\n[data-frozen] > summary > .nn-t-params,\n[data-frozen] > summary > .nn-t-arrow {\n  opacity: 0.55;\n}\n\n/* Footer with info-hover legend */\n.nn-t-footer {\n  display: flex;\n  justify-content: flex-end;\n  padding: 0.25rem 0.75rem 0.375rem 0.75rem;\n}\n.nn-t-info {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  color: var(--slate-8);\n  cursor: default;\n}\n.nn-t-info:hover { color: var(--slate-10); }\n.nn-t-info:hover .nn-t-legend {\n  visibility: visible;\n  opacity: 1;\n}\n.nn-t-info svg {\n  width: 0.875rem;\n  height: 0.875rem;\n}\n.nn-t-legend {\n  visibility: hidden;\n  opacity: 0;\n  position: absolute;\n  bottom: calc(100% + 6px);\n  right: 0;\n  z-index: 10;\n  max-height: 12rem;\n  overflow-y: auto;\n  display: flex;\n  flex-direction: column;\n  gap: 0.25rem;\n  padding: 0.375rem 0.625rem;\n  background: var(--slate-1);\n  border: 1px solid var(--slate-3);\n  border-radius: 6px;\n  white-space: nowrap;\n  transition: opacity 0.12s, visibility 0.12s;\n  font-family: monospace;\n  font-size: 0.75rem;\n  color: var(--slate-11);\n}\n.nn-t-legend-title {\n  font-size: 0.6875rem;\n  text-transform: uppercase;\n  letter-spacing: 0.04em;\n  color: var(--slate-9);\n  margin-bottom: 0.0625rem;\n}\n.nn-t-legend-item {\n  display: flex;\n  align-items: center;\n  gap: 0.375rem;\n}\n.nn-t-swatch {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 0.875rem;\n  height: 0.8125rem;\n  border-radius: 0.1875rem;\n  flex-shrink: 0;\n  background: var(--slate-3);\n}\n.nn-t-swatch[data-cat=\"weight\"] { background: var(--blue-3); }\n.nn-t-swatch[data-cat=\"norm\"]   { background: var(--green-3); }\n.nn-t-swatch[data-cat=\"act\"]    { background: var(--orange-3); }\n.nn-t-swatch[data-cat=\"reg\"]    { background: var(--crimson-3); }\n.nn-t-swatch-dot {\n  width: 0.25rem;\n  height: 0.25rem;\n  border-radius: 50%;\n  background: var(--slate-8);\n}\n.nn-t-swatch[data-cat=\"weight\"] .nn-t-swatch-dot { background: var(--blue-11); }\n.nn-t-swatch[data-cat=\"norm\"] .nn-t-swatch-dot   { background: var(--green-11); }\n.nn-t-swatch[data-cat=\"act\"] .nn-t-swatch-dot    { background: var(--orange-11); }\n.nn-t-swatch[data-cat=\"reg\"] .nn-t-swatch-dot    { background: var(--crimson-11); }\n.nn-t-swatch[data-dim] { opacity: 0.55; }\n.nn-t-legend-sep {\n  height: 1px;\n  background: var(--slate-3);\n  margin: 0.125rem 0;\n}</style><div class=\"nn-t-header\"><span class=\"nn-t-root\">FusionHead</span><span class=\"nn-t-summary\">1.5M params (0 trainable) \u00b7 5.7 MB</span></div><div class=\"nn-t-divider\"></div><div class=\"nn-t-body\"><details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">in_proj</span> <span class=\"nn-t-type\" data-cat=\"weight\">Conv2d</span> <span class=\"nn-t-pos\">64, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">kernel_size</span>=(3, 3), <span class=\"nn-t-key\">stride</span>=(1, 1), <span class=\"nn-t-key\">padding</span>=(1, 1)</span><span class=\"nn-t-params\" data-frozen=\"true\">110.8K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">kernel_size</span> (3, 3)<br><span class=\"nn-t-key\">stride</span> (1, 1)<br><span class=\"nn-t-key\">padding</span> (1, 1)<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-node\" data-frozen=\"true\"><summary><span class=\"nn-t-arrow\">&#9654;</span><span class=\"nn-t-name\">conv_blocks</span> <span class=\"nn-t-type\">ModuleList</span><span class=\"nn-t-params\">1.3M (frozen)</span></summary><div class=\"nn-t-children\"><details class=\"nn-t-node\" data-frozen=\"true\"><summary><span class=\"nn-t-arrow\">&#9654;</span><span class=\"nn-t-name\">0</span> <span class=\"nn-t-type\">ResnetBlock</span><span class=\"nn-t-params\">664.7K (frozen)</span></summary><div class=\"nn-t-children\"><details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">norm1</span> <span class=\"nn-t-type\" data-cat=\"norm\">GroupNorm</span> <span class=\"nn-t-pos\">8, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">384 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">conv1</span> <span class=\"nn-t-type\" data-cat=\"weight\">Conv2d</span> <span class=\"nn-t-pos\">192, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">kernel_size</span>=(3, 3), <span class=\"nn-t-key\">stride</span>=(1, 1), <span class=\"nn-t-key\">padding</span>=(1, 1)</span><span class=\"nn-t-params\" data-frozen=\"true\">332.0K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">kernel_size</span> (3, 3)<br><span class=\"nn-t-key\">stride</span> (1, 1)<br><span class=\"nn-t-key\">padding</span> (1, 1)<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">norm2</span> <span class=\"nn-t-type\" data-cat=\"norm\">GroupNorm</span> <span class=\"nn-t-pos\">8, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">384 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">conv2</span> <span class=\"nn-t-type\" data-cat=\"weight\">Conv2d</span> <span class=\"nn-t-pos\">192, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">kernel_size</span>=(3, 3), <span class=\"nn-t-key\">stride</span>=(1, 1), <span class=\"nn-t-key\">padding</span>=(1, 1)</span><span class=\"nn-t-params\" data-frozen=\"true\">332.0K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">kernel_size</span> (3, 3)<br><span class=\"nn-t-key\">stride</span> (1, 1)<br><span class=\"nn-t-key\">padding</span> (1, 1)<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<div class=\"nn-t-leaf\" data-frozen=\"true\"><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">act</span> <span class=\"nn-t-type\" data-cat=\"act\">SiLU</span></div></div></details>\n<details class=\"nn-t-node\" data-frozen=\"true\"><summary><span class=\"nn-t-arrow\">&#9654;</span><span class=\"nn-t-name\">1</span> <span class=\"nn-t-type\">ResnetBlock</span><span class=\"nn-t-params\">664.7K (frozen)</span></summary><div class=\"nn-t-children\"><details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">norm1</span> <span class=\"nn-t-type\" data-cat=\"norm\">GroupNorm</span> <span class=\"nn-t-pos\">8, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">384 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">conv1</span> <span class=\"nn-t-type\" data-cat=\"weight\">Conv2d</span> <span class=\"nn-t-pos\">192, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">kernel_size</span>=(3, 3), <span class=\"nn-t-key\">stride</span>=(1, 1), <span class=\"nn-t-key\">padding</span>=(1, 1)</span><span class=\"nn-t-params\" data-frozen=\"true\">332.0K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">kernel_size</span> (3, 3)<br><span class=\"nn-t-key\">stride</span> (1, 1)<br><span class=\"nn-t-key\">padding</span> (1, 1)<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">norm2</span> <span class=\"nn-t-type\" data-cat=\"norm\">GroupNorm</span> <span class=\"nn-t-pos\">8, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">384 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">conv2</span> <span class=\"nn-t-type\" data-cat=\"weight\">Conv2d</span> <span class=\"nn-t-pos\">192, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">kernel_size</span>=(3, 3), <span class=\"nn-t-key\">stride</span>=(1, 1), <span class=\"nn-t-key\">padding</span>=(1, 1)</span><span class=\"nn-t-params\" data-frozen=\"true\">332.0K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">kernel_size</span> (3, 3)<br><span class=\"nn-t-key\">stride</span> (1, 1)<br><span class=\"nn-t-key\">padding</span> (1, 1)<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<div class=\"nn-t-leaf\" data-frozen=\"true\"><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">act</span> <span class=\"nn-t-type\" data-cat=\"act\">SiLU</span></div></div></details></div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">norm_out</span> <span class=\"nn-t-type\" data-cat=\"norm\">GroupNorm</span> <span class=\"nn-t-pos\">8, 192</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">384 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<div class=\"nn-t-leaf\" data-frozen=\"true\"><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">act_out</span> <span class=\"nn-t-type\" data-cat=\"act\">SiLU</span></div>\n<details class=\"nn-t-node\" data-frozen=\"true\"><summary><span class=\"nn-t-arrow\">&#9654;</span><span class=\"nn-t-name\">mlp</span> <span class=\"nn-t-type\">Sequential</span><span class=\"nn-t-params\">56.3K (frozen)</span></summary><div class=\"nn-t-children\"><details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">0</span> <span class=\"nn-t-type\" data-cat=\"weight\">Linear</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">in_features</span>=192, <span class=\"nn-t-key\">out_features</span>=192, <span class=\"nn-t-key\">bias</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">37.1K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">in_features</span> 192<br><span class=\"nn-t-key\">out_features</span> 192<br><span class=\"nn-t-key\">bias</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">1</span> <span class=\"nn-t-type\" data-cat=\"norm\">LayerNorm</span> <span class=\"nn-t-pos\">(192,)</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">elementwise_affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">384 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">elementwise_affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">2</span> <span class=\"nn-t-type\" data-cat=\"act\">GELU</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">approximate</span>=&#x27;none&#x27;</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">approximate</span> &#x27;none&#x27;</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">3</span> <span class=\"nn-t-type\" data-cat=\"weight\">Linear</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">in_features</span>=192, <span class=\"nn-t-key\">out_features</span>=96, <span class=\"nn-t-key\">bias</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">18.5K (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">in_features</span> 192<br><span class=\"nn-t-key\">out_features</span> 96<br><span class=\"nn-t-key\">bias</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">4</span> <span class=\"nn-t-type\" data-cat=\"norm\">LayerNorm</span> <span class=\"nn-t-pos\">(96,)</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">eps</span>=1e-05, <span class=\"nn-t-key\">elementwise_affine</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">192 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">eps</span> 1e-05<br><span class=\"nn-t-key\">elementwise_affine</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">5</span> <span class=\"nn-t-type\" data-cat=\"act\">GELU</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">approximate</span>=&#x27;none&#x27;</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">approximate</span> &#x27;none&#x27;</div></details>\n<details class=\"nn-t-expand\" data-frozen=\"true\"><summary><span class=\"nn-t-spacer\"></span><span class=\"nn-t-name\">6</span> <span class=\"nn-t-type\" data-cat=\"weight\">Linear</span> <span class=\"nn-t-args\"><span class=\"nn-t-key\">in_features</span>=96, <span class=\"nn-t-key\">out_features</span>=1, <span class=\"nn-t-key\">bias</span>=True</span><span class=\"nn-t-params\" data-frozen=\"true\">97 (frozen)</span></summary><div class=\"nn-t-expand-body\"><span class=\"nn-t-key\">in_features</span> 96<br><span class=\"nn-t-key\">out_features</span> 1<br><span class=\"nn-t-key\">bias</span> True<div class=\"nn-t-expand-sep\"><span class=\"nn-t-expand-sep-label\">tensor</span></div><span class=\"nn-t-key\">dtype</span> float32<br><span class=\"nn-t-key\">device</span> cuda:0</div></details></div></details></div><div class=\"nn-t-footer\"><span class=\"nn-t-info\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/></svg><span class=\"nn-t-legend\"><span class=\"nn-t-legend-title\">Module types</span><span class=\"nn-t-legend-item\"><span class=\"nn-t-swatch\" data-cat=\"weight\"><span class=\"nn-t-swatch-dot\"></span></span>Weight</span><span class=\"nn-t-legend-item\"><span class=\"nn-t-swatch\" data-cat=\"act\"><span class=\"nn-t-swatch-dot\"></span></span>Activation</span><span class=\"nn-t-legend-item\"><span class=\"nn-t-swatch\" data-cat=\"norm\"><span class=\"nn-t-swatch-dot\"></span></span>Normalization</span><span class=\"nn-t-legend-item\"><span class=\"nn-t-swatch\" data-cat=\"reg\"><span class=\"nn-t-swatch-dot\"></span></span>Regularization</span><span class=\"nn-t-legend-sep\"></span><span class=\"nn-t-legend-item\"><span class=\"nn-t-swatch\"><span class=\"nn-t-swatch-dot\"></span></span>Trainable</span><span class=\"nn-t-legend-item\"><span class=\"nn-t-swatch\" data-dim><span class=\"nn-t-swatch-dot\"></span></span>Frozen / no params</span></span></span></div></div>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ZHCJ",
       "code_hash": "99a18642f7098f1e73a9df814abd9882",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ROlb",
       "code_hash": "32f7cbae26f8f0ef6aa68a8d2b824f39",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "qnkX",
       "code_hash": "38a005fb4211be5c918e6653e14059a1",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "TqIu",
-      "code_hash": "d43631dc7c83a2fd83a3276dc5b6aae9",
+      "code_hash": "d5fa560dd9f17601c7a14d3da0b85a80",
       "outputs": [
         {
           "type": "data",
@@ -136,56 +269,119 @@
     {
       "id": "Vxnm",
       "code_hash": "e51b9bff388c8156dd7ab76b24682262",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "DnEU",
       "code_hash": "18ecc5d62aa6a894a49e8b185b429bd9",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ulZA",
       "code_hash": "2e8e2d565cbbc22134bca2944e40ef52",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ecfG",
       "code_hash": "b6a8c0ef6f5ee8ac6e7aec9266eeea3b",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "Pvdt",
       "code_hash": "92dd32595f657cca9193d4282ea9d673",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ZBYS",
       "code_hash": "c8671f667c46e137aa93c1fef109e715",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "aLJB",
       "code_hash": "eecbc0ccb90a60233a49eb8ca7bd48d8",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "nHfw",
-      "code_hash": "dbc744c7d6e151c7c5f8a76b11b7c292",
-      "outputs": [],
+      "code_hash": "86a955f2c463c5a5bef82c02dbf7ba5a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "xXTn",
       "code_hash": "0d5ab474a8fb04beb5883eda7a3ab2be",
       "outputs": [],
-      "console": []
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "[step 0] train/loss=1.0069 train/energy_gap_mean=-0.0069 train/e_clean_mean=0.4281 train/e_corrupted_mean=0.4212 train/lr=0.0000 train/tau_jepa=0.9900 epoch=0\n[step 500] train/loss=0.5468 train/energy_gap_mean=1.6395 train/e_clean_mean=-0.7253 train/e_corrupted_mean=0.9142 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 500] train/cosine_sim_online_target=0.7104\n[step 1000] train/loss=0.4509 train/energy_gap_mean=2.6981 train/e_clean_mean=-3.1551 train/e_corrupted_mean=-0.4570 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 1000] train/cosine_sim_online_target=0.7704\n[step 1500] train/loss=0.3301 train/energy_gap_mean=2.5099 train/e_clean_mean=-0.9827 train/e_corrupted_mean=1.5272 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 1500] train/cosine_sim_online_target=0.8287\n[step 2000] train/loss=0.3324 train/energy_gap_mean=3.3643 train/e_clean_mean=-2.2260 train/e_corrupted_mean=1.1383 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 2000] train/cosine_sim_online_target=0.8738\n[step 2500] train/loss=0.2964 train/energy_gap_mean=3.3904 train/e_clean_mean=-1.0614 train/e_corrupted_mean=2.3290 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 2500] train/cosine_sim_online_target=0.8863\n[step 3000] train/loss=0.2424 train/energy_gap_mean=2.6823 train/e_clean_mean=0.2845 train/e_corrupted_mean=2.9669 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 3000] train/cosine_sim_online_target=0.8955\n[step 3500] train/loss=0.2915 train/energy_gap_mean=3.5723 train/e_clean_mean=-3.2077 train/e_corrupted_mean=0.3646 train/lr=0.0001 train/tau_jepa=0.9990 epoch=0\n[step 3500] train/cosine_sim_online_target=0.8951\n[step 3566] val/loss=0.3096 val/margin_satisfaction=0.7118 val/energy_gap=3.5918 epoch=1\n[epoch 1/30] val_loss=0.3096 margin_sat=0.712 gap=3.592\n[step 4000] train/loss=0.1952 train/energy_gap_mean=3.0229 train/e_clean_mean=-0.2747 train/e_corrupted_mean=2.7482 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 4000] train/cosine_sim_online_target=0.9193\n[step 4500] train/loss=0.3790 train/energy_gap_mean=3.4650 train/e_clean_mean=-1.0431 train/e_corrupted_mean=2.4218 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 4500] train/cosine_sim_online_target=0.9253\n[step 5000] train/loss=0.3537 train/energy_gap_mean=2.8470 train/e_clean_mean=-0.8088 train/e_corrupted_mean=2.0382 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 5000] train/cosine_sim_online_target=0.9169\n[step 5500] train/loss=0.2559 train/energy_gap_mean=4.2875 train/e_clean_mean=-1.1816 train/e_corrupted_mean=3.1059 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 5500] train/cosine_sim_online_target=0.9343\n[step 6000] train/loss=0.2183 train/energy_gap_mean=5.0149 train/e_clean_mean=-3.8392 train/e_corrupted_mean=1.1757 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 6000] train/cosine_sim_online_target=0.9395\n[step 6500] train/loss=0.0868 train/energy_gap_mean=4.2549 train/e_clean_mean=-1.0669 train/e_corrupted_mean=3.1880 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 6500] train/cosine_sim_online_target=0.9380\n[step 7000] train/loss=0.3714 train/energy_gap_mean=3.0789 train/e_clean_mean=0.9415 train/e_corrupted_mean=4.0204 train/lr=0.0001 train/tau_jepa=0.9990 epoch=1\n[step 7000] train/cosine_sim_online_target=0.9354\n[step 7132] val/loss=0.2715 val/margin_satisfaction=0.7414 val/energy_gap=4.4422 epoch=2\n[epoch 2/30] val_loss=0.2715 margin_sat=0.741 gap=4.442\n[step 7500] train/loss=0.2011 train/energy_gap_mean=3.1911 train/e_clean_mean=2.8011 train/e_corrupted_mean=5.9922 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 7500] train/cosine_sim_online_target=0.9431\n[step 8000] train/loss=0.1986 train/energy_gap_mean=4.7067 train/e_clean_mean=-0.0436 train/e_corrupted_mean=4.6631 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 8000] train/cosine_sim_online_target=0.9430\n[step 8500] train/loss=0.2787 train/energy_gap_mean=4.5223 train/e_clean_mean=-1.9463 train/e_corrupted_mean=2.5760 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 8500] train/cosine_sim_online_target=0.9415\n[step 9000] train/loss=0.3412 train/energy_gap_mean=3.8031 train/e_clean_mean=1.3155 train/e_corrupted_mean=5.1187 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 9000] train/cosine_sim_online_target=0.9492\n[step 9500] train/loss=0.3311 train/energy_gap_mean=4.9320 train/e_clean_mean=-2.3547 train/e_corrupted_mean=2.5773 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 9500] train/cosine_sim_online_target=0.9465\n[step 10000] train/loss=0.2972 train/energy_gap_mean=4.9098 train/e_clean_mean=-2.1946 train/e_corrupted_mean=2.7152 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 10000] train/cosine_sim_online_target=0.9488\n[step 10500] train/loss=0.1946 train/energy_gap_mean=3.2574 train/e_clean_mean=2.1947 train/e_corrupted_mean=5.4521 train/lr=0.0001 train/tau_jepa=0.9990 epoch=2\n[step 10500] train/cosine_sim_online_target=0.9415\n[step 10698] val/loss=0.2513 val/margin_satisfaction=0.7507 val/energy_gap=5.1952 epoch=3\n[epoch 3/30] val_loss=0.2513 margin_sat=0.751 gap=5.195\n[step 11000] train/loss=0.1613 train/energy_gap_mean=4.3433 train/e_clean_mean=-1.3002 train/e_corrupted_mean=3.0431 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 11000] train/cosine_sim_online_target=0.9553\n[step 11500] train/loss=0.2674 train/energy_gap_mean=5.2214 train/e_clean_mean=-1.2994 train/e_corrupted_mean=3.9220 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 11500] train/cosine_sim_online_target=0.9524\n[step 12000] train/loss=0.1906 train/energy_gap_mean=4.6302 train/e_clean_mean=-0.3278 train/e_corrupted_mean=4.3024 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 12000] train/cosine_sim_online_target=0.9549\n[step 12500] train/loss=0.3419 train/energy_gap_mean=3.8493 train/e_clean_mean=0.1738 train/e_corrupted_mean=4.0231 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 12500] train/cosine_sim_online_target=0.9409\n[step 13000] train/loss=0.1995 train/energy_gap_mean=4.6031 train/e_clean_mean=0.0547 train/e_corrupted_mean=4.6577 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 13000] train/cosine_sim_online_target=0.9477\n[step 13500] train/loss=0.3110 train/energy_gap_mean=4.5404 train/e_clean_mean=-0.2888 train/e_corrupted_mean=4.2515 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 13500] train/cosine_sim_online_target=0.9506\n[step 14000] train/loss=0.1656 train/energy_gap_mean=5.2655 train/e_clean_mean=-1.5642 train/e_corrupted_mean=3.7013 train/lr=0.0001 train/tau_jepa=0.9990 epoch=3\n[step 14000] train/cosine_sim_online_target=0.9537\n[step 14264] val/loss=0.2531 val/margin_satisfaction=0.7849 val/energy_gap=5.0470 epoch=4\n[epoch 4/30] val_loss=0.2531 margin_sat=0.785 gap=5.047\n",
+          "mimetype": "text/plain"
+        }
+      ]
     },
     {
       "id": "AjVT",
@@ -207,7 +403,7 @@
     },
     {
       "id": "aqbW",
-      "code_hash": "cb9feb0efbd127998d0d72bc13563ac0",
+      "code_hash": "2e5eb81fb60dc61ab846d8f804dc9182",
       "outputs": [
         {
           "type": "data",

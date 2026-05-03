@@ -46,53 +46,54 @@ def add(ref, value, footprint, lib_id, description, pins):
     })
 
 # ---------- U1: ESP32-S3-WROOM-2-N16R8 ----------
+# Pin numbering follows official Espressif ESP32-S3-WROOM-1 datasheet Table 2.
+# Module has 41 pins total. Pin 1=GND, Pin 2=3V3, Pin 3=EN, etc.
 add("U1", "ESP32-S3-WROOM-2-N16R8",
-    "RF_Module:ESP32-S2-WROOM",
     "RF_Module:ESP32-S3-WROOM-1",
-    "Espressif WiFi/BT module — main MCU. Map to WROOM-2 footprint manually in KiCad.",
+    "RF_Module:ESP32-S3-WROOM-1",
+    "Espressif WiFi/BT module - main MCU. WROOM-1 footprint used as PLACEHOLDER; verify pad pattern against WROOM-2 datasheet, OR install JLCPCB component library and swap to their WROOM-2 footprint before fab. Pin numbering matches official ESP32-S3-WROOM-1 datasheet (41 pins).",
     [
         ("1",  "GND",     "power_in"),
         ("2",  "3V3",     "power_in"),
-        ("3",  "3V3",     "power_in"),
-        ("4",  "EN",      "input"),
-        ("5",  "IO4",     "bidirectional"),
-        ("6",  "IO5",     "bidirectional"),
-        ("7",  "IO6",     "bidirectional"),
-        ("8",  "IO7",     "bidirectional"),
-        ("9",  "IO15",    "bidirectional"),
-        ("10", "IO16",    "bidirectional"),
-        ("11", "IO17",    "bidirectional"),
-        ("12", "IO18",    "bidirectional"),
-        ("13", "IO8",     "bidirectional"),
-        ("14", "IO19",    "bidirectional"),
-        ("15", "IO20",    "bidirectional"),
-        ("16", "IO3",     "bidirectional"),
-        ("17", "IO46",    "bidirectional"),
-        ("18", "IO9",     "bidirectional"),
-        ("19", "IO10",    "bidirectional"),
-        ("20", "IO11",    "bidirectional"),
-        ("21", "IO12",    "bidirectional"),
-        ("22", "IO13",    "bidirectional"),
-        ("23", "IO14",    "bidirectional"),
-        ("24", "VDD3P3",  "power_in"),
-        ("25", "GND",     "power_in"),
-        # Pins 26-32 internally connected to Octal SPI flash & PSRAM on N16R8
-        ("33", "IO33",    "bidirectional"),
-        ("34", "IO34",    "bidirectional"),
-        ("35", "IO35_NC", "no_connect"),  # PSRAM internal
-        ("36", "IO36_NC", "no_connect"),
-        ("37", "IO37_NC", "no_connect"),
-        ("38", "IO38",    "bidirectional"),
-        ("39", "IO39",    "bidirectional"),
-        ("40", "IO40",    "bidirectional"),
-        ("41", "IO41",    "bidirectional"),
-        ("42", "IO42",    "bidirectional"),
-        ("43", "TXD0",    "bidirectional"),
-        ("44", "RXD0",    "bidirectional"),
-        ("45", "IO45",    "bidirectional"),
-        ("46", "IO0",     "bidirectional"),
-        ("47", "GND",     "power_in"),
-        ("48", "EPAD",    "power_in"),
+        ("3",  "EN",      "input"),
+        ("4",  "IO4",     "bidirectional"),
+        ("5",  "IO5",     "bidirectional"),
+        ("6",  "IO6",     "bidirectional"),
+        ("7",  "IO7",     "bidirectional"),
+        ("8",  "IO15",    "bidirectional"),
+        ("9",  "IO16",    "bidirectional"),
+        ("10", "IO17",    "bidirectional"),
+        ("11", "IO18",    "bidirectional"),
+        ("12", "IO8",     "bidirectional"),
+        ("13", "IO19",    "bidirectional"),
+        ("14", "IO20",    "bidirectional"),
+        ("15", "IO3",     "bidirectional"),
+        ("16", "IO46",    "bidirectional"),
+        ("17", "IO9",     "bidirectional"),
+        ("18", "IO10",    "bidirectional"),
+        ("19", "IO11",    "bidirectional"),
+        ("20", "IO12",    "bidirectional"),
+        ("21", "IO13",    "bidirectional"),
+        ("22", "IO14",    "bidirectional"),
+        ("23", "IO21",    "bidirectional"),
+        ("24", "IO47",    "bidirectional"),
+        ("25", "IO48",    "bidirectional"),
+        ("26", "IO45",    "bidirectional"),
+        ("27", "IO0",     "bidirectional"),
+        ("28", "IO35_NC", "bidirectional"),  # PSRAM internal on R8
+        ("29", "IO36_NC", "bidirectional"),  # PSRAM internal on R8
+        ("30", "IO37_NC", "bidirectional"),  # PSRAM internal on R8
+        ("31", "IO38",    "bidirectional"),
+        ("32", "IO39",    "bidirectional"),
+        ("33", "IO40",    "bidirectional"),
+        ("34", "IO41",    "bidirectional"),
+        ("35", "IO42",    "bidirectional"),
+        ("36", "RXD0",    "bidirectional"),  # GPIO44
+        ("37", "TXD0",    "bidirectional"),  # GPIO43
+        ("38", "IO2",     "bidirectional"),
+        ("39", "IO1",     "bidirectional"),
+        ("40", "GND",     "power_in"),
+        ("41", "EPAD",    "power_in"),
     ])
 
 # ---------- U2: MCP73832T — LiPo charger (USB side) ----------
@@ -139,9 +140,9 @@ add("U3", "BQ25570RGRR",
 
 # ---------- U4: XC6220B331 — 3.3V LDO ----------
 add("U4", "XC6220B331MR-G",
-    "Package_TO_SOT_SMD:SOT-25",
+    "Package_TO_SOT_SMD:SOT-23-5",
     "Regulator_Linear:XC6220Bxx",
-    "Torex 1A 3.3V LDO with EN",
+    "Torex 1A 3.3V LDO with EN. Package SOT-25 is the same physical footprint as SOT-23-5 (just different vendor naming).",
     [
         ("1", "VIN",  "power_in"),
         ("2", "GND",  "power_in"),
@@ -246,7 +247,7 @@ add("J1", "USB-C 16P SMD",
         ("B7",  "DN2",   "bidirectional"),
         ("B9",  "VBUS",  "power_in"),
         ("B12", "GND",   "power_in"),
-        ("S1",  "SHIELD","power_in"),
+        ("SH",  "SHIELD","power_in"),
     ])
 
 # ---------- J2: SMD JST-PH 2P (LiPo) ----------
@@ -257,6 +258,7 @@ add("J2", "JST-PH 2P SMD",
     [
         ("1", "VBAT", "power_in"),
         ("2", "GND",  "power_in"),
+        ("MP", "MP",  "passive"),  # mechanical mounting pad (SMD legs)
     ])
 
 # ---------- J3: 24-pin 0.5mm FPC connector for e-paper ----------
@@ -291,30 +293,31 @@ add("J3", "FPC 24P 0.5mm",
         ("22", "VCOM",  "passive"),
         ("23", "GDR2",  "passive"),
         ("24", "VSS2",  "power_in"),
+        ("MP", "MP",    "passive"),  # FPC connector mechanical mounting pads
     ])
 
 # ---------- J4: Solar cell pads ----------
 add("J4", "Solar Cell Pads",
-    "TerminalBlock:TerminalBlock_bornier-2_P5.08mm",
+    "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
     "Connector_Generic:Conn_01x02",
-    "Solder pads for solar cell wires",
+    "PLACEHOLDER through-hole 1x02 header. Replace with custom SMD solder pads (two 2x2mm pads spaced ~3mm apart) for direct wire soldering.",
     [("1", "SOL_PLUS", "passive"), ("2", "SOL_MINUS", "passive")])
 
 # ---------- J5: ERM motor pads ----------
 add("J5", "ERM Motor Pads",
-    "TerminalBlock:TerminalBlock_bornier-2_P5.08mm",
+    "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
     "Connector_Generic:Conn_01x02",
-    "Solder pads for ERM coin haptic motor",
+    "PLACEHOLDER through-hole 1x02 header. Replace with custom SMD solder pads for direct ERM motor wire soldering.",
     [("1", "MOT_PLUS", "passive"), ("2", "MOT_MINUS", "passive")])
 
 # ---------- Test points / pads ----------
-TOUCH_FOOTPRINT = "TestPoint:TestPoint_Pad_D8.0mm"
+TOUCH_FOOTPRINT = "TestPoint:TestPoint_Pad_D4.0mm"  # PLACEHOLDER — must replace with custom 8.0mm circle for proper touch sensing
 add("TP1", "Touch UP",     TOUCH_FOOTPRINT, "Connector:TestPoint",
-    "Capacitive touch pad — UP", [("1", "P", "passive")])
+    "Capacitive touch pad — UP. Footprint is 4mm placeholder; create custom 8mm circle with no solder mask before fab.", [("1", "P", "passive")])
 add("TP2", "Touch SELECT", TOUCH_FOOTPRINT, "Connector:TestPoint",
-    "Capacitive touch pad — SELECT (RTC wake)", [("1", "P", "passive")])
+    "Capacitive touch pad — SELECT (RTC wake). Footprint is 4mm placeholder; replace with custom 8mm circle.", [("1", "P", "passive")])
 add("TP3", "Touch DOWN",   TOUCH_FOOTPRINT, "Connector:TestPoint",
-    "Capacitive touch pad — DOWN", [("1", "P", "passive")])
+    "Capacitive touch pad — DOWN. Footprint is 4mm placeholder; replace with custom 8mm circle.", [("1", "P", "passive")])
 
 RST_FOOTPRINT = "TestPoint:TestPoint_Pad_1.5x1.5mm"
 add("TP4", "RST_BRIDGE_A", RST_FOOTPRINT, "Connector:TestPoint",
@@ -409,7 +412,7 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
 
     # ---------- Ground ----------
     ("GND", [
-        ("U1", "1"), ("U1", "25"), ("U1", "47"), ("U1", "48"),  # ESP32 GND + EPAD
+        ("U1", "1"), ("U1", "40"), ("U1", "41"),  # ESP32 GND + EPAD
         ("U2", "2"),                                              # MCP73832 GND
         ("U3", "18"), ("U3", "20"), ("U3", "21"),                # BQ25570 VSS, EN (active-LOW), EPAD
         ("U4", "2"),                                              # XC6220 GND
@@ -418,8 +421,10 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
         ("U6", "2"),                                              # USBLC6 GND
         ("Q1", "2"),                                              # MOSFET source
         ("J1", "A1"), ("J1", "A12"), ("J1", "B1"), ("J1", "B12"),
-        ("J1", "S1"),                                             # USB-C GND + shield
+        ("J1", "SH"),                                             # USB-C GND + shield
         ("J2", "2"),                                              # LiPo GND
+        ("J2", "MP"),                                            # JST-PH mounting pads
+        ("J3", "MP"),                                            # FPC mounting pads
         ("J3", "15"), ("J3", "24"),                              # E-paper VSS, VSS2
         ("J3", "4"),  ("J3", "5"),                               # E-paper TSCL, TSDA (unused)
         ("J4", "2"),                                              # Solar cell -
@@ -457,7 +462,7 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
 
     # ---------- +3V3 (regulated 3.3V rail) ----------
     ("+3V3", [
-        ("U1", "2"), ("U1", "3"), ("U1", "24"),  # ESP32 3V3 pins
+        ("U1", "2"),  # ESP32 3V3 pin (WROOM-1 has only one 3V3 pin)
         ("U4", "5"),                              # XC6220 VOUT
         ("J3", "13"), ("J3", "14"),               # E-paper VDDIO, VCI
         ("R2", "2"),                              # EN pull-up to 3V3
@@ -560,11 +565,11 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ]),
     ("USB_DP_PROT", [   # Post-ESD (USBLC6 to ESP32)
         ("U6", "6"),    # USBLC6 IO1'
-        ("U1", "15"),   # ESP32 GPIO20 = USB D+
+        ("U1", "14"),   # ESP32 GPIO20 = USB D+
     ]),
     ("USB_DM_PROT", [
         ("U6", "4"),    # USBLC6 IO2'
-        ("U1", "14"),   # ESP32 GPIO19 = USB D-
+        ("U1", "13"),   # ESP32 GPIO19 = USB D-
     ]),
 
     # ---------- USB-C CC pull-downs ----------
@@ -583,32 +588,32 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
 
     # ---------- ESP32 EN / Reset ----------
     ("ESP_EN", [
-        ("U1", "4"),     # ESP32 EN
+        ("U1", "3"),     # ESP32 EN
         ("R2", "1"),     # Pull-up
         ("TP4", "1"),    # RST bridge pad A
     ]),
 
     # ---------- Touch pads ----------
     ("TOUCH_UP", [
-        ("U1", "5"),     # GPIO4
+        ("U1", "4"),     # GPIO4
         ("TP1", "1"),
     ]),
     ("TOUCH_SEL", [
-        ("U1", "6"),     # GPIO5 — RTC touch wake
+        ("U1", "5"),     # GPIO5 — RTC touch wake
         ("TP2", "1"),
     ]),
     ("TOUCH_DN", [
-        ("U1", "7"),     # GPIO6
+        ("U1", "6"),     # GPIO6
         ("TP3", "1"),
     ]),
 
     # ---------- E-paper SPI + control ----------
-    ("EP_BUSY", [("U1", "8"),  ("J3", "7")]),    # GPIO7
-    ("EP_RST",  [("U1", "13"), ("J3", "8")]),    # GPIO8
-    ("EP_DC",   [("U1", "18"), ("J3", "9")]),    # GPIO9
-    ("EP_CS",   [("U1", "19"), ("J3", "10")]),   # GPIO10
-    ("EP_MOSI", [("U1", "20"), ("J3", "12")]),   # GPIO11 -> SDA
-    ("EP_SCK",  [("U1", "21"), ("J3", "11")]),   # GPIO12 -> SCL
+    ("EP_BUSY", [("U1", "7"),  ("J3", "7")]),    # GPIO7
+    ("EP_RST",  [("U1", "12"), ("J3", "8")]),    # GPIO8
+    ("EP_DC",   [("U1", "17"), ("J3", "9")]),    # GPIO9
+    ("EP_CS",   [("U1", "18"), ("J3", "10")]),   # GPIO10
+    ("EP_MOSI", [("U1", "19"), ("J3", "12")]),   # GPIO11 -> SDA
+    ("EP_SCK",  [("U1", "20"), ("J3", "11")]),   # GPIO12 -> SCL
 
     # ---------- E-paper internal supply pins ----------
     ("EP_VDD",  [("J3", "16"), ("C20", "1")]),  # Internal logic supply
@@ -640,7 +645,7 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
 
     # ---------- Haptic motor ----------
     ("HAPTIC_GATE", [
-        ("U1", "22"),    # GPIO13
+        ("U1", "21"),    # GPIO13
         ("Q1", "1"),     # MOSFET gate
     ]),
     ("MOTOR_NEG", [
@@ -651,22 +656,22 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
 
     # ---------- I2C (fuel gauge) ----------
     ("I2C_SDA", [
-        ("U1", "38"),    # GPIO38
+        ("U1", "31"),    # GPIO38
         ("U5", "5"),     # MAX17048 SDA
         ("R10", "1"),
     ]),
     ("I2C_SCL", [
-        ("U1", "39"),    # GPIO39
+        ("U1", "32"),    # GPIO39
         ("U5", "6"),     # MAX17048 SCL
         ("R11", "1"),
     ]),
 
     # ---------- Charge level LEDs ----------
-    ("LED1_NET", [("U1", "23"), ("D3", "1")]),  # GPIO14 -> LED cathode
-    ("LED2_NET", [("U1", "9"),  ("D4", "1")]),  # GPIO15 -> LED cathode
-    ("LED3_NET", [("U1", "10"), ("D5", "1")]),  # GPIO16 -> LED cathode
-    ("LED4_NET", [("U1", "11"), ("D6", "1")]),  # GPIO17 -> LED cathode
-    ("LED5_NET", [("U1", "12"), ("D7", "1")]),  # GPIO18 -> LED cathode
+    ("LED1_NET", [("U1", "22"), ("D3", "1")]),  # GPIO14 -> LED cathode
+    ("LED2_NET", [("U1", "8"),  ("D4", "1")]),  # GPIO15 -> LED cathode
+    ("LED3_NET", [("U1", "9"), ("D5", "1")]),  # GPIO16 -> LED cathode
+    ("LED4_NET", [("U1", "10"), ("D6", "1")]),  # GPIO17 -> LED cathode
+    ("LED5_NET", [("U1", "11"), ("D7", "1")]),  # GPIO18 -> LED cathode
 
     ("LED1_R",   [("D3", "2"), ("R5", "1")]),
     ("LED2_R",   [("D4", "2"), ("R6", "1")]),
@@ -675,8 +680,8 @@ NETS: List[Tuple[str, List[Tuple[str, str]]]] = [
     ("LED5_R",   [("D7", "2"), ("R9", "1")]),
 
     # ---------- Debug breakouts ----------
-    ("DEBUG_TX", [("U1", "43"), ("TP6", "1")]),
-    ("DEBUG_RX", [("U1", "44"), ("TP7", "1")]),
+    ("DEBUG_TX", [("U1", "37"), ("TP6", "1")]),
+    ("DEBUG_RX", [("U1", "36"), ("TP7", "1")]),
 
     # ---------- Unused ESP32 GPIOs (no_connect) ----------
     # In KiCad these would be marked with NC flags. Listed here for completeness:
@@ -700,6 +705,17 @@ for net_name, members in NETS:
 # ============================================================================
 # NETLIST GENERATOR
 # ============================================================================
+
+def esc(s: str) -> str:
+    """Escape a string for KiCad S-expression format.
+
+    KiCad's parser uses C-style escaping inside double-quoted strings:
+      backslash -> \\
+      double quote -> \"
+    Everything else (including UTF-8) passes through.
+    """
+    return s.replace("\\", "\\\\").replace('"', '\\"')
+
 
 def generate_kicad_netlist(filename: str = "chess_card.net"):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -752,30 +768,33 @@ def generate_kicad_netlist(filename: str = "chess_card.net"):
     # Components
     lines.append('  (components')
     for c in COMPONENTS:
-        lines.append(f'    (comp (ref "{c["ref"]}")')
-        lines.append(f'      (value "{c["value"]}")')
-        lines.append(f'      (footprint "{c["footprint"]}")')
-        lines.append(f'      (description "{c["description"]}")')
-        lines.append(f'      (libsource (lib "{c["lib_id"].split(":")[0]}") '
-                     f'(part "{c["lib_id"].split(":")[1]}") '
-                     f'(description "{c["description"]}"))')
+        lib_parts = c["lib_id"].split(":")
+        lib_name = lib_parts[0] if len(lib_parts) > 0 else ""
+        part_name = lib_parts[1] if len(lib_parts) > 1 else lib_parts[0]
+        lines.append(f'    (comp (ref "{esc(c["ref"])}")')
+        lines.append(f'      (value "{esc(c["value"])}")')
+        lines.append(f'      (footprint "{esc(c["footprint"])}")')
+        lines.append(f'      (description "{esc(c["description"])}")')
+        lines.append(f'      (libsource (lib "{esc(lib_name)}") '
+                     f'(part "{esc(part_name)}") '
+                     f'(description "{esc(c["description"])}"))')
         lines.append(f'      (sheetpath (names "/") (tstamps "/")))')
     lines.append('  )')
 
     # Nets
     lines.append('  (nets')
     for i, (net_name, members) in enumerate(NETS, start=1):
-        lines.append(f'    (net (code "{i}") (name "{net_name}")')
+        lines.append(f'    (net (code "{i}") (name "{esc(net_name)}")')
         for ref, pin in members:
             comp = next((c for c in COMPONENTS if c["ref"] == ref), None)
             if comp:
                 pin_info = next((p for p in comp["pins"] if p[0] == pin), None)
                 pin_name = pin_info[1] if pin_info else pin
                 pin_type = pin_info[2] if pin_info else "passive"
-                lines.append(f'      (node (ref "{ref}") (pin "{pin}") '
-                             f'(pinfunction "{pin_name}") (pintype "{pin_type}"))')
+                lines.append(f'      (node (ref "{esc(ref)}") (pin "{esc(pin)}") '
+                             f'(pinfunction "{esc(pin_name)}") (pintype "{esc(pin_type)}"))')
             else:
-                lines.append(f'      (node (ref "{ref}") (pin "{pin}"))')
+                lines.append(f'      (node (ref "{esc(ref)}") (pin "{esc(pin)}"))')
         lines.append(f'    )')
     lines.append('  )')
 
